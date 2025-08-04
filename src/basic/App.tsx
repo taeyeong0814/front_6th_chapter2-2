@@ -1,7 +1,7 @@
 import { useState, useCallback, useEffect } from "react";
-import { CartItem, Coupon, Product } from "../types";
-import { Notification } from "./types";
+import { CartItem, Coupon, Product, Notification } from "../types";
 import { initialProducts, initialCoupons, ProductWithUI } from "./constants";
+import { getDisplayPrice } from "./business/price";
 
 const App = () => {
   const [products, setProducts] = useState<ProductWithUI[]>(() => {
@@ -66,21 +66,6 @@ const App = () => {
     discountType: "amount" as "amount" | "percentage",
     discountValue: 0,
   });
-
-  const formatPrice = (price: number, productId?: string): string => {
-    if (productId) {
-      const product = products.find((p) => p.id === productId);
-      if (product && getRemainingStock(product) <= 0) {
-        return "SOLD OUT";
-      }
-    }
-
-    if (isAdmin) {
-      return `${price.toLocaleString()}원`;
-    }
-
-    return `₩${price.toLocaleString()}`;
-  };
 
   const getMaxApplicableDiscount = (item: CartItem): number => {
     const { discounts } = item.product;
@@ -593,7 +578,11 @@ const App = () => {
                               {product.name}
                             </td>
                             <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                              {formatPrice(product.price, product.id)}
+                              {getDisplayPrice(
+                                product,
+                                isAdmin,
+                                getRemainingStock
+                              )}
                             </td>
                             <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                               <span
@@ -1179,7 +1168,11 @@ const App = () => {
                             {/* 가격 정보 */}
                             <div className="mb-3">
                               <p className="text-lg font-bold text-gray-900">
-                                {formatPrice(product.price, product.id)}
+                                {getDisplayPrice(
+                                  product,
+                                  isAdmin,
+                                  getRemainingStock
+                                )}
                               </p>
                               {product.discounts.length > 0 && (
                                 <p className="text-xs text-gray-500">
