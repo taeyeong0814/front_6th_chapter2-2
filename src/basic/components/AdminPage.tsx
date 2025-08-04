@@ -20,14 +20,29 @@ import { getDisplayPrice } from "../business/price";
 import { initialProducts, ProductWithUI, initialCoupons } from "../constants";
 import { CartItem, Coupon, Notification, Product } from "../../types";
 
-export function AdminPage(props: { isAdmin: boolean }) {
-  const { isAdmin } = props;
+export function AdminPage(props: {
+  isAdmin: boolean;
+  products: ProductWithUI[];
+  setProducts: React.Dispatch<React.SetStateAction<ProductWithUI[]>>;
+  coupons: Coupon[];
+  setCoupons: React.Dispatch<React.SetStateAction<Coupon[]>>;
+  notifications: Notification[];
+  setNotifications: React.Dispatch<React.SetStateAction<Notification[]>>;
+}) {
+  const {
+    isAdmin,
+    products,
+    setProducts,
+    coupons,
+    setCoupons,
+    notifications,
+    setNotifications,
+  } = props;
   const [activeTab, setActiveTab] = useState<"products" | "coupons">(
     "products"
   );
 
   const [editingProduct, setEditingProduct] = useState<string | null>(null);
-  const [notifications, setNotifications] = useState<Notification[]>([]);
   const [debouncedSearchTerm, setDebouncedSearchTerm] = useState("");
   const [searchTerm, setSearchTerm] = useState("");
   const [showProductForm, setShowProductForm] = useState(false);
@@ -54,29 +69,7 @@ export function AdminPage(props: { isAdmin: boolean }) {
     return [];
   });
 
-  const [coupons, setCoupons] = useState<Coupon[]>(() => {
-    const saved = localStorage.getItem("coupons");
-    if (saved) {
-      try {
-        return JSON.parse(saved);
-      } catch {
-        return initialCoupons;
-      }
-    }
-    return initialCoupons;
-  });
-
-  const [products, setProducts] = useState<ProductWithUI[]>(() => {
-    const saved = localStorage.getItem("products");
-    if (saved) {
-      try {
-        return JSON.parse(saved);
-      } catch {
-        return initialProducts;
-      }
-    }
-    return initialProducts;
-  });
+  // products, coupons는 App에서 props로 전달받음
 
   const [couponForm, setCouponForm] = useState({
     name: "",
@@ -89,12 +82,11 @@ export function AdminPage(props: { isAdmin: boolean }) {
     (message: string, type: "error" | "success" | "warning" = "success") => {
       const id = Date.now().toString();
       setNotifications((prev) => [...prev, { id, message, type }]);
-
       setTimeout(() => {
         setNotifications((prev) => prev.filter((n) => n.id !== id));
       }, 3000);
     },
-    []
+    [setNotifications]
   );
 
   const addProduct = useCallback(

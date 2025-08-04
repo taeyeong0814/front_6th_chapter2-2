@@ -1,26 +1,58 @@
-import { useEffect, useState } from "react";
+import { useState, useEffect } from "react";
 
 import { AdminPage } from "./components/AdminPage";
 import { CartPage } from "./components/CartPage";
-import { CartItem, Notification } from "../types";
+import { Coupon } from "../types";
+import { ProductWithUI, initialProducts, initialCoupons } from "./constants";
+import { useCart } from "./hooks/useCart";
 
 const App = () => {
   const [isAdmin, setIsAdmin] = useState(false);
-  const [notifications, setNotifications] = useState<Notification[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
-  const [totalItemCount, setTotalItemCount] = useState(0);
-
-  const [cart, setCart] = useState<CartItem[]>(() => {
-    const saved = localStorage.getItem("cart");
+  const [products, setProducts] = useState<ProductWithUI[]>(() => {
+    const saved = localStorage.getItem("products");
     if (saved) {
       try {
         return JSON.parse(saved);
       } catch {
-        return [];
+        return initialProducts;
       }
     }
-    return [];
+    return initialProducts;
   });
+  const [coupons, setCoupons] = useState<Coupon[]>(() => {
+    const saved = localStorage.getItem("coupons");
+    if (saved) {
+      try {
+        return JSON.parse(saved);
+      } catch {
+        return initialCoupons;
+      }
+    }
+    return initialCoupons;
+  });
+
+  // useCart는 products를 받아서 cart, notifications 등 상태를 관리
+  const {
+    notifications,
+    setNotifications,
+    cart,
+    setCart,
+    totalItemCount,
+    addToCart,
+    removeFromCart,
+    updateQuantity,
+    totals,
+    getRemainingStock,
+    completeOrder,
+    calculateItemTotal,
+    applyCoupon,
+  } = useCart(products);
+
+  // products 상태 변경 시 localStorage에 동기화
+  useEffect(() => {
+    localStorage.setItem("products", JSON.stringify(products));
+  }, [products]);
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -122,9 +154,35 @@ const App = () => {
 
       <main className="max-w-7xl mx-auto px-4 py-8">
         {isAdmin ? (
-          <AdminPage isAdmin={isAdmin} />
+          <AdminPage
+            isAdmin={isAdmin}
+            products={products}
+            setProducts={setProducts}
+            coupons={coupons}
+            setCoupons={setCoupons}
+            notifications={notifications}
+            setNotifications={setNotifications}
+          />
         ) : (
-          <CartPage isAdmin={isAdmin} />
+          <CartPage
+            isAdmin={isAdmin}
+            searchTerm={searchTerm}
+            products={products}
+            setProducts={setProducts}
+            coupons={coupons}
+            setCoupons={setCoupons}
+            notifications={notifications}
+            setNotifications={setNotifications}
+            cart={cart}
+            addToCart={addToCart}
+            removeFromCart={removeFromCart}
+            updateQuantity={updateQuantity}
+            totals={totals}
+            getRemainingStock={getRemainingStock}
+            completeOrder={completeOrder}
+            calculateItemTotal={calculateItemTotal}
+            applyCoupon={applyCoupon}
+          />
         )}
       </main>
     </div>

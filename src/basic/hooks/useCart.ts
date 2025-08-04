@@ -249,6 +249,10 @@ export function useCart(products: Product[]) {
     getRemainingStock,
     totals,
     calculateItemTotal,
+    notifications,
+    setNotifications,
+    setCart,
+    totalItemCount,
   };
 }
 

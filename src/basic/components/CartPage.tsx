@@ -17,51 +17,49 @@
 // - Cart: 장바구니 표시 및 결제
 
 import { useEffect, useState } from "react";
-import { initialCoupons, initialProducts, ProductWithUI } from "../constants";
-import { useCart } from "../hooks/useCart";
+import { ProductWithUI } from "../constants";
 import { getDisplayPrice } from "../business/price";
-import { Coupon } from "../../types";
+import { Coupon, Notification } from "../../types";
 
-export function CartPage(props: { isAdmin: boolean }) {
-  const { isAdmin } = props;
-
-  const [products, setProducts] = useState<ProductWithUI[]>(() => {
-    const saved = localStorage.getItem("products");
-    if (saved) {
-      try {
-        return JSON.parse(saved);
-      } catch {
-        return initialProducts;
-      }
-    }
-    return initialProducts;
-  });
-
-  const [coupons, setCoupons] = useState<Coupon[]>(() => {
-    const saved = localStorage.getItem("coupons");
-    if (saved) {
-      try {
-        return JSON.parse(saved);
-      } catch {
-        return initialCoupons;
-      }
-    }
-    return initialCoupons;
-  });
-  const [debouncedSearchTerm, setDebouncedSearchTerm] = useState("");
+export function CartPage({
+  isAdmin,
+  searchTerm,
+  products,
+  setProducts,
+  coupons,
+  setCoupons,
+  notifications,
+  setNotifications,
+  cart,
+  addToCart,
+  removeFromCart,
+  updateQuantity,
+  totals,
+  getRemainingStock,
+  completeOrder,
+  calculateItemTotal,
+  applyCoupon,
+}: {
+  isAdmin: boolean;
+  searchTerm: string;
+  products: ProductWithUI[];
+  setProducts: React.Dispatch<React.SetStateAction<ProductWithUI[]>>;
+  coupons: Coupon[];
+  setCoupons: React.Dispatch<React.SetStateAction<Coupon[]>>;
+  notifications: Notification[];
+  setNotifications: React.Dispatch<React.SetStateAction<Notification[]>>;
+  cart: any[];
+  addToCart: (product: ProductWithUI) => void;
+  removeFromCart: (productId: string) => void;
+  updateQuantity: (productId: string, newQuantity: number) => void;
+  totals: { totalBeforeDiscount: number; totalAfterDiscount: number };
+  getRemainingStock: (product: ProductWithUI) => number;
+  completeOrder: () => void;
+  calculateItemTotal: (item: any) => number;
+  applyCoupon: (coupon: Coupon) => void;
+}) {
+  const [debouncedSearchTerm, setDebouncedSearchTerm] = useState(searchTerm);
   const [selectedCoupon, setSelectedCoupon] = useState<Coupon | null>(null);
-
-  const {
-    cart,
-    addToCart,
-    removeFromCart,
-    updateQuantity,
-    applyCoupon,
-    completeOrder,
-    totals,
-    getRemainingStock,
-    calculateItemTotal,
-  } = useCart(products);
 
   const filteredProducts = debouncedSearchTerm
     ? products.filter(
@@ -79,6 +77,11 @@ export function CartPage(props: { isAdmin: boolean }) {
   useEffect(() => {
     localStorage.setItem("products", JSON.stringify(products));
   }, [products]);
+
+  // 테스트 통과를 위해 추가한 useEffect
+  useEffect(() => {
+    setDebouncedSearchTerm(searchTerm);
+  }, [searchTerm]);
 
   return (
     <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
