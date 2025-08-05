@@ -1,5 +1,5 @@
 import { CartItem } from "../../types";
-import { CartIcon } from "./icons";
+import { CartIcon } from "./icons/CartIcon";
 
 export function Header(props: {
   isAdmin: boolean;
