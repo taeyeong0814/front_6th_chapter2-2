@@ -31,6 +31,7 @@ export function CartPage({
   notifications,
   setNotifications,
   cart,
+  selectedCoupon: selectedCouponFromCart,
   addToCart,
   removeFromCart,
   updateQuantity,
@@ -39,6 +40,7 @@ export function CartPage({
   completeOrder,
   calculateItemTotal,
   applyCoupon,
+  removeCoupon,
 }: {
   isAdmin: boolean;
   searchTerm: string;
@@ -49,6 +51,7 @@ export function CartPage({
   notifications: Notification[];
   setNotifications: React.Dispatch<React.SetStateAction<Notification[]>>;
   cart: any[];
+  selectedCoupon: any;
   addToCart: (product: ProductWithUI) => void;
   removeFromCart: (productId: string) => void;
   updateQuantity: (productId: string, newQuantity: number) => void;
@@ -57,9 +60,11 @@ export function CartPage({
   completeOrder: () => void;
   calculateItemTotal: (item: any) => number;
   applyCoupon: (coupon: Coupon) => void;
+  removeCoupon: () => void;
 }) {
   const [debouncedSearchTerm, setDebouncedSearchTerm] = useState(searchTerm);
-  const [selectedCoupon, setSelectedCoupon] = useState<Coupon | null>(null);
+  // 이제 useCart에서 관리하는 selectedCoupon을 사용하므로 로컬 상태 제거
+  // const [selectedCoupon, setSelectedCoupon] = useState<Coupon | null>(null);
 
   const filteredProducts = debouncedSearchTerm
     ? products.filter(
@@ -329,13 +334,16 @@ export function CartPage({
                 {coupons.length > 0 && (
                   <select
                     className="w-full text-sm border border-gray-300 rounded px-3 py-2 focus:outline-none focus:border-blue-500"
-                    value={selectedCoupon?.code || ""}
+                    value={selectedCouponFromCart?.code || ""}
                     onChange={(e) => {
                       const coupon = coupons.find(
                         (c) => c.code === e.target.value
                       );
-                      if (coupon) applyCoupon(coupon);
-                      else setSelectedCoupon(null);
+                      if (coupon) {
+                        applyCoupon(coupon);
+                      } else {
+                        removeCoupon();
+                      }
                     }}
                   >
                     <option value="">쿠폰 선택</option>

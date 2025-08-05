@@ -39,6 +39,7 @@ const App = () => {
     cart,
     setCart,
     totalItemCount,
+    selectedCoupon,
     addToCart,
     removeFromCart,
     updateQuantity,
@@ -47,6 +48,7 @@ const App = () => {
     completeOrder,
     calculateItemTotal,
     applyCoupon,
+    removeCoupon,
   } = useCart(products);
 
   // products 상태 변경 시 localStorage에 동기화
@@ -174,6 +176,7 @@ const App = () => {
             notifications={notifications}
             setNotifications={setNotifications}
             cart={cart}
+            selectedCoupon={selectedCoupon}
             addToCart={addToCart}
             removeFromCart={removeFromCart}
             updateQuantity={updateQuantity}
@@ -182,6 +185,7 @@ const App = () => {
             completeOrder={completeOrder}
             calculateItemTotal={calculateItemTotal}
             applyCoupon={applyCoupon}
+            removeCoupon={removeCoupon}
           />
         )}
       </main>
