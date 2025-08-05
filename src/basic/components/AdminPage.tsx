@@ -16,7 +16,7 @@
 // - CouponList: 쿠폰 목록 표시
 
 import { useCallback, useEffect, useState } from "react";
-import { getDisplayPrice } from "../business/price";
+import { getDisplayPrice } from "../utils/price";
 import { initialProducts, ProductWithUI, initialCoupons } from "../constants";
 import { CartItem, Coupon, Notification, Product } from "../../types";
 

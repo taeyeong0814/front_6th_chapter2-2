@@ -18,7 +18,7 @@
 
 import { useEffect, useState } from "react";
 import { ProductWithUI } from "../constants";
-import { getDisplayPrice } from "../business/price";
+import { getDisplayPrice } from "../utils/price";
 import { Coupon, Notification } from "../../types";
 
 export function CartPage({

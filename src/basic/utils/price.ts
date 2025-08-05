@@ -1,5 +1,5 @@
 import { ProductWithUI } from "../constants";
-import { formatPrice } from "../utils/formatters";
+import { formatPrice } from "./formatters";
 
 export function getDisplayPrice(
   product: ProductWithUI,
