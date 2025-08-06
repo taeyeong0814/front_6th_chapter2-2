@@ -2,7 +2,7 @@ import { BagIcon, EmptyBagIcon, BagCloseIcon } from "../icons";
 import { CartItem } from "../../../types";
 
 interface CartProps {
-  cart: CartItem[]; // 타입을 명확히 정의
+  cart: CartItem[];
   removeFromCart: (productId: string) => void;
   updateQuantity: (productId: string, newQuantity: number) => void;
   calculateItemTotal: (item: CartItem) => number;
