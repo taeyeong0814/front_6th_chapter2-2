@@ -1,13 +1,20 @@
 import { ProductWithUI } from "../constants";
 import { formatPrice } from "./formatters";
 
+/**
+ * 상품의 표시 가격을 계산합니다 (순수 함수)
+ * @param product 상품 정보
+ * @param isAdmin 관리자 모드 여부
+ * @param remainingStock 남은 재고 수량
+ * @returns 표시할 가격 문자열
+ */
 export function getDisplayPrice(
   product: ProductWithUI,
   isAdmin: boolean,
-  getRemainingStock: (product: ProductWithUI) => number
+  remainingStock: number
 ): string {
   // 재고가 없는 경우 "SOLD OUT" 표시
-  if (getRemainingStock(product) <= 0) {
+  if (remainingStock <= 0) {
     return "SOLD OUT";
   }
 

@@ -1,6 +1,6 @@
 // TODO: 상품 관리 Hook
-// 주요 기능(힌트):
-// 1. 상품 목록 상태 관리 (localStorage 연동)
+// 힌트:
+// 1. 상품 목록 상태 관리 (localStorage 연동 고려)
 // 2. 상품 CRUD 작업
 // 3. 재고 업데이트
 // 4. 할인 규칙 추가/삭제
@@ -13,15 +13,33 @@
 // - addProductDiscount: 할인 규칙 추가
 // - removeProductDiscount: 할인 규칙 삭제
 
-import { useCallback, useEffect, useState } from "react";
-import { Product, Notification, Discount } from "../../types";
-import { initialProducts } from "../constants";
-import * as productModel from "../models/product";
+import { useState, useCallback, useEffect } from "react";
+import { Discount } from "../../types";
+import { ProductWithUI, initialProducts } from "../constants";
 
-export function useProducts(
-  setNotifications?: React.Dispatch<React.SetStateAction<Notification[]>>
-) {
-  const [products, setProducts] = useState<Product[]>(() => {
+interface UseProductsProps {
+  addNotification: (
+    message: string,
+    type?: "error" | "success" | "warning"
+  ) => void;
+}
+
+/**
+ * 상품 관리 관련 상태와 로직을 관리하는 훅
+ *
+ * 주요 기능:
+ * 1. 상품 목록 상태 관리 (localStorage 연동)
+ * 2. 상품 CRUD 작업 (추가, 수정, 삭제)
+ * 3. 재고 업데이트
+ * 4. 할인 규칙 관리
+ * 5. 상품 검색 및 필터링
+ *
+ * @param addNotification 알림 메시지 표시 함수
+ * @returns 상품 관련 상태와 함수들
+ */
+export const useProducts = ({ addNotification }: UseProductsProps) => {
+  // 상품 목록 상태
+  const [products, setProducts] = useState<ProductWithUI[]>(() => {
     const saved = localStorage.getItem("products");
     if (saved) {
       try {
@@ -38,193 +56,200 @@ export function useProducts(
     localStorage.setItem("products", JSON.stringify(products));
   }, [products]);
 
-  // 알림 관리
-  const addNotification = useCallback(
-    (message: string, type: "error" | "success" | "warning" = "success") => {
-      if (setNotifications) {
-        const id = Date.now().toString();
-        setNotifications((prev) => [...prev, { id, message, type }]);
-
-        setTimeout(() => {
-          setNotifications((prev) => prev.filter((n) => n.id !== id));
-        }, 3000);
-      }
-    },
-    [setNotifications]
-  );
-
   // 상품 추가
+  // 새로운 상품을 목록에 추가하고 유효성 검증을 수행
   const addProduct = useCallback(
-    (productData: {
-      name: string;
-      price: number;
-      stock: number;
-      discounts?: Discount[];
-    }) => {
-      // 상품명 중복 체크
-      if (productModel.isDuplicateProductName(products, productData.name)) {
+    (newProduct: Omit<ProductWithUI, "id">) => {
+      // 상품명 중복 검사
+      const isDuplicate = products.some(
+        (product) => product.name === newProduct.name
+      );
+      if (isDuplicate) {
         addNotification("이미 존재하는 상품명입니다.", "error");
-        return false;
+        return;
       }
 
-      // 새 상품 생성 (유효성 검증 포함)
-      const newProductWithoutId = productModel.createProduct(productData);
-      if (!newProductWithoutId) {
-        addNotification("유효하지 않은 상품 정보입니다.", "error");
-        return false;
+      // 유효성 검증
+      if (!newProduct.name.trim()) {
+        addNotification("상품명을 입력해주세요.", "error");
+        return;
+      }
+      if (newProduct.price <= 0) {
+        addNotification("가격은 0보다 커야 합니다.", "error");
+        return;
+      }
+      if (newProduct.stock < 0) {
+        addNotification("재고는 0 이상이어야 합니다.", "error");
+        return;
       }
 
-      // ID 추가하여 완전한 Product 객체 생성
-      const newProduct: Product = {
-        ...newProductWithoutId,
-        id: Date.now().toString() + Math.random().toString(36).substr(2, 9), // 고유 ID 생성
+      // 새 상품 생성 (ID 자동 생성)
+      const productToAdd: ProductWithUI = {
+        ...newProduct,
+        id: Date.now().toString(),
       };
 
-      // 상품 목록에 추가
-      const updatedProducts = productModel.addProductToProducts(
-        products,
-        newProduct
-      );
-      if (!updatedProducts) {
-        addNotification("상품 추가에 실패했습니다.", "error");
-        return false;
-      }
-
-      setProducts(updatedProducts);
+      setProducts((prevProducts) => [...prevProducts, productToAdd]);
       addNotification("상품이 추가되었습니다.", "success");
-      return true;
     },
     [products, addNotification]
   );
 
   // 상품 정보 수정
+  // 기존 상품의 정보를 업데이트
   const updateProduct = useCallback(
-    (productId: string, updates: Partial<Product>) => {
-      // 상품명 변경 시 중복 체크
-      if (
-        updates.name &&
-        productModel.isDuplicateProductNameForUpdate(
-          products,
-          productId,
-          updates.name
-        )
-      ) {
-        addNotification("이미 존재하는 상품명입니다.", "error");
-        return false;
-      }
-
-      const updatedProducts = productModel.updateProductInList(
-        products,
-        productId,
-        updates
+    (productId: string, updates: Partial<ProductWithUI>) => {
+      const productExists = products.some(
+        (product) => product.id === productId
       );
-      if (!updatedProducts) {
-        addNotification(
-          "상품을 찾을 수 없거나 유효하지 않은 정보입니다.",
-          "error"
-        );
-        return false;
+      if (!productExists) {
+        addNotification("상품을 찾을 수 없습니다.", "error");
+        return;
       }
 
-      setProducts(updatedProducts);
+      // 상품명 변경 시 중복 검사
+      if (updates.name) {
+        const isDuplicate = products.some(
+          (product) => product.id !== productId && product.name === updates.name
+        );
+        if (isDuplicate) {
+          addNotification("이미 존재하는 상품명입니다.", "error");
+          return;
+        }
+      }
+
+      // 유효성 검증
+      if (updates.price !== undefined && updates.price <= 0) {
+        addNotification("가격은 0보다 커야 합니다.", "error");
+        return;
+      }
+      if (updates.stock !== undefined && updates.stock < 0) {
+        addNotification("재고는 0 이상이어야 합니다.", "error");
+        return;
+      }
+
+      setProducts((prevProducts) =>
+        prevProducts.map((product) =>
+          product.id === productId ? { ...product, ...updates } : product
+        )
+      );
       addNotification("상품 정보가 수정되었습니다.", "success");
-      return true;
     },
     [products, addNotification]
   );
 
-  // 재고 업데이트
-  const updateProductStock = useCallback(
-    (productId: string, stock: number) => {
-      if (!productModel.isValidStock(stock)) {
-        addNotification("재고는 0 이상이어야 합니다.", "error");
-        return false;
-      }
-
-      const updatedProducts = productModel.updateProductStockInList(
-        products,
-        productId,
-        stock
+  // 상품 삭제
+  const removeProduct = useCallback(
+    (productId: string) => {
+      setProducts((prevProducts) =>
+        prevProducts.filter((product) => product.id !== productId)
       );
-      if (!updatedProducts) {
-        addNotification("상품을 찾을 수 없습니다.", "error");
-        return false;
+      addNotification("상품이 삭제되었습니다.", "success");
+    },
+    [addNotification]
+  );
+
+  // 재고 업데이트
+  // 특정 상품의 재고 수량을 변경
+  const updateProductStock = useCallback(
+    (productId: string, newStock: number) => {
+      if (newStock < 0) {
+        addNotification("재고는 0 이상이어야 합니다.", "error");
+        return;
       }
 
-      setProducts(updatedProducts);
+      const productExists = products.some(
+        (product) => product.id === productId
+      );
+      if (!productExists) {
+        addNotification("상품을 찾을 수 없습니다.", "error");
+        return;
+      }
+
+      setProducts((prevProducts) =>
+        prevProducts.map((product) =>
+          product.id === productId ? { ...product, stock: newStock } : product
+        )
+      );
       addNotification("재고가 업데이트되었습니다.", "success");
-      return true;
     },
     [products, addNotification]
   );
 
   // 할인 규칙 추가
+  // 특정 상품에 새로운 할인 규칙을 추가
   const addProductDiscount = useCallback(
     (productId: string, discount: Discount) => {
-      const updatedProducts = productModel.addProductDiscountToList(
-        products,
-        productId,
-        discount
-      );
-      if (!updatedProducts) {
-        addNotification(
-          "상품을 찾을 수 없거나 유효하지 않은 할인 규칙입니다.",
-          "error"
-        );
-        return false;
+      if (discount.quantity <= 0) {
+        addNotification("할인 적용 수량은 0보다 커야 합니다.", "error");
+        return;
+      }
+      if (discount.rate <= 0 || discount.rate > 1) {
+        addNotification("할인율은 0과 1 사이의 값이어야 합니다.", "error");
+        return;
       }
 
-      setProducts(updatedProducts);
+      const productExists = products.some(
+        (product) => product.id === productId
+      );
+      if (!productExists) {
+        addNotification("상품을 찾을 수 없습니다.", "error");
+        return;
+      }
+
+      setProducts((prevProducts) =>
+        prevProducts.map((product) =>
+          product.id === productId
+            ? {
+                ...product,
+                discounts: [...product.discounts, discount].sort(
+                  (a, b) => a.quantity - b.quantity
+                ),
+              }
+            : product
+        )
+      );
       addNotification("할인 규칙이 추가되었습니다.", "success");
-      return true;
     },
     [products, addNotification]
   );
 
-  // 할인 규칙 삭제
+  // 할인 규칙 제거
+  // 특정 상품의 할인 규칙을 제거
   const removeProductDiscount = useCallback(
     (productId: string, discountIndex: number) => {
-      const updatedProducts = productModel.removeProductDiscountFromList(
-        products,
-        productId,
-        discountIndex
-      );
-      if (!updatedProducts) {
-        addNotification("상품 또는 할인 규칙을 찾을 수 없습니다.", "error");
-        return false;
+      const product = products.find((p) => p.id === productId);
+      if (!product) {
+        addNotification("상품을 찾을 수 없습니다.", "error");
+        return;
+      }
+      if (discountIndex < 0 || discountIndex >= product.discounts.length) {
+        addNotification("유효하지 않은 할인 규칙입니다.", "error");
+        return;
       }
 
-      setProducts(updatedProducts);
+      setProducts((prevProducts) =>
+        prevProducts.map((product) =>
+          product.id === productId
+            ? {
+                ...product,
+                discounts: product.discounts.filter(
+                  (_, index) => index !== discountIndex
+                ),
+              }
+            : product
+        )
+      );
       addNotification("할인 규칙이 삭제되었습니다.", "success");
-      return true;
     },
     [products, addNotification]
   );
 
-  // 상품 찾기
+  // 상품 검색
+  // 상품명으로 상품을 찾아 반환
   const findProduct = useCallback(
-    (productId: string) => {
-      return productModel.findProductById(products, productId);
-    },
-    [products]
-  );
-
-  // 상품 할인율 계산
-  const getProductDiscountRate = useCallback(
-    (product: Product, quantity: number) => {
-      return productModel.getProductDiscountRate(product, quantity);
-    },
-    []
-  );
-
-  // 상품 재고 확인
-  const checkProductStock = useCallback(
-    (productId: string, requestedQuantity: number) => {
-      return productModel.hasEnoughStock(
-        products,
-        productId,
-        requestedQuantity
-      );
+    (productId: string): ProductWithUI | undefined => {
+      return products.find((product) => product.id === productId);
     },
     [products]
   );
@@ -236,18 +261,14 @@ export function useProducts(
     // 상품 관리 함수들
     addProduct,
     updateProduct,
-    updateProductStock,
+    removeProduct,
     findProduct,
+
+    // 재고 관리 함수들
+    updateProductStock,
 
     // 할인 관리 함수들
     addProductDiscount,
     removeProductDiscount,
-    getProductDiscountRate,
-
-    // 재고 관리 함수들
-    checkProductStock,
-
-    // 상태 setter (내부 사용용)
-    setProducts,
   };
-}
+};

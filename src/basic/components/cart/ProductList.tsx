@@ -1,7 +1,7 @@
-import { useState, useEffect } from "react";
 import { ProductImageIcon } from "../icons";
 import { ProductWithUI } from "../../constants";
 import { getDisplayPrice } from "../../utils/price";
+import { useDebounce } from "../../utils/hooks/useDebounce";
 
 interface ProductListProps {
   products: ProductWithUI[];
@@ -18,12 +18,8 @@ export function ProductList({
   getRemainingStock,
   isAdmin,
 }: ProductListProps) {
-  const [debouncedSearchTerm, setDebouncedSearchTerm] = useState(searchTerm);
-
-  // 테스트 통과를 위해 추가한 useEffect
-  useEffect(() => {
-    setDebouncedSearchTerm(searchTerm);
-  }, [searchTerm]);
+  // 검색어 디바운싱 적용 (300ms 지연)
+  const debouncedSearchTerm = useDebounce(searchTerm, 300);
 
   const filteredProducts = debouncedSearchTerm
     ? products.filter(
@@ -92,7 +88,11 @@ export function ProductList({
                   {/* 가격 정보 */}
                   <div className="mb-3">
                     <p className="text-lg font-bold text-gray-900">
-                      {getDisplayPrice(product, isAdmin, getRemainingStock)}
+                      {getDisplayPrice(
+                        product,
+                        isAdmin,
+                        getRemainingStock(product)
+                      )}
                     </p>
                     {product.discounts.length > 0 && (
                       <p className="text-xs text-gray-500">

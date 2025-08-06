@@ -17,38 +17,56 @@
 
 import { CloseIcon, TrashIcon, PlusIcon } from "./icons";
 
-import { useCallback, useEffect, useState } from "react";
+import { useState } from "react";
 import { getDisplayPrice } from "../utils/price";
-import { initialProducts, ProductWithUI, initialCoupons } from "../constants";
-import { CartItem, Coupon, Notification, Product } from "../../types";
+import { ProductWithUI } from "../constants";
+import { Product, CartItem, Coupon } from "../../types";
 
-export function AdminPage(props: {
+interface AdminPageProps {
   isAdmin: boolean;
   products: ProductWithUI[];
-  setProducts: React.Dispatch<React.SetStateAction<ProductWithUI[]>>;
+  addProduct: (newProduct: Omit<ProductWithUI, "id">) => void;
+  updateProduct: (productId: string, updates: Partial<ProductWithUI>) => void;
+  removeProduct: (productId: string) => void;
   coupons: Coupon[];
-  setCoupons: React.Dispatch<React.SetStateAction<Coupon[]>>;
-  notifications: Notification[];
-  setNotifications: React.Dispatch<React.SetStateAction<Notification[]>>;
-}) {
-  const {
-    isAdmin,
-    products,
-    setProducts,
-    coupons,
-    setCoupons,
-    notifications,
-    setNotifications,
-  } = props;
+  addCoupon: (newCoupon: Omit<Coupon, "id">) => void;
+  removeCoupon: (couponCode: string) => void;
+  cart: CartItem[];
+  addNotification: (
+    message: string,
+    type?: "error" | "success" | "warning"
+  ) => void;
+}
+
+/**
+ * 관리자 페이지 컴포넌트
+ *
+ * 주요 기능:
+ * 1. 탭 UI로 상품 관리와 쿠폰 관리 분리
+ * 2. 상품 추가/수정/삭제 기능
+ * 3. 쿠폰 생성 기능
+ * 4. 할인 규칙 설정
+ *
+ * Props로 모든 상태와 함수를 받아서 사용 (Props Drilling 방식)
+ */
+export function AdminPage({
+  isAdmin,
+  products,
+  addProduct,
+  updateProduct,
+  removeProduct,
+  coupons,
+  addCoupon,
+  removeCoupon,
+  cart,
+  addNotification,
+}: AdminPageProps) {
   const [activeTab, setActiveTab] = useState<"products" | "coupons">(
     "products"
   );
 
   const [editingProduct, setEditingProduct] = useState<string | null>(null);
-  const [debouncedSearchTerm, setDebouncedSearchTerm] = useState("");
-  const [searchTerm, setSearchTerm] = useState("");
   const [showProductForm, setShowProductForm] = useState(false);
-  const [selectedCoupon, setSelectedCoupon] = useState<Coupon | null>(null);
   const [showCouponForm, setShowCouponForm] = useState(false);
 
   const [productForm, setProductForm] = useState({
@@ -59,81 +77,12 @@ export function AdminPage(props: {
     discounts: [] as Array<{ quantity: number; rate: number }>,
   });
 
-  const [cart, setCart] = useState<CartItem[]>(() => {
-    const saved = localStorage.getItem("cart");
-    if (saved) {
-      try {
-        return JSON.parse(saved);
-      } catch {
-        return [];
-      }
-    }
-    return [];
-  });
-
-  // products, coupons는 App에서 props로 전달받음
-
   const [couponForm, setCouponForm] = useState({
     name: "",
     code: "",
     discountType: "amount" as "amount" | "percentage",
     discountValue: 0,
   });
-
-  const addNotification = useCallback(
-    (message: string, type: "error" | "success" | "warning" = "success") => {
-      const id = Date.now().toString();
-      setNotifications((prev) => [...prev, { id, message, type }]);
-      setTimeout(() => {
-        setNotifications((prev) => prev.filter((n) => n.id !== id));
-      }, 3000);
-    },
-    [setNotifications]
-  );
-
-  const addProduct = useCallback(
-    (newProduct: Omit<ProductWithUI, "id">) => {
-      const product: ProductWithUI = {
-        ...newProduct,
-        id: `p${Date.now()}`,
-      };
-      setProducts((prev) => [...prev, product]);
-      addNotification("상품이 추가되었습니다.", "success");
-    },
-    [addNotification]
-  );
-
-  const deleteProduct = useCallback(
-    (productId: string) => {
-      setProducts((prev) => prev.filter((p) => p.id !== productId));
-      addNotification("상품이 삭제되었습니다.", "success");
-    },
-    [addNotification]
-  );
-
-  const addCoupon = useCallback(
-    (newCoupon: Coupon) => {
-      const existingCoupon = coupons.find((c) => c.code === newCoupon.code);
-      if (existingCoupon) {
-        addNotification("이미 존재하는 쿠폰 코드입니다.", "error");
-        return;
-      }
-      setCoupons((prev) => [...prev, newCoupon]);
-      addNotification("쿠폰이 추가되었습니다.", "success");
-    },
-    [coupons, addNotification]
-  );
-
-  const deleteCoupon = useCallback(
-    (couponCode: string) => {
-      setCoupons((prev) => prev.filter((c) => c.code !== couponCode));
-      if (selectedCoupon?.code === couponCode) {
-        setSelectedCoupon(null);
-      }
-      addNotification("쿠폰이 삭제되었습니다.", "success");
-    },
-    [selectedCoupon, addNotification]
-  );
 
   const handleCouponSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -158,18 +107,6 @@ export function AdminPage(props: {
     });
     setShowProductForm(true);
   };
-
-  const updateProduct = useCallback(
-    (productId: string, updates: Partial<ProductWithUI>) => {
-      setProducts((prev) =>
-        prev.map((product) =>
-          product.id === productId ? { ...product, ...updates } : product
-        )
-      );
-      addNotification("상품이 수정되었습니다.", "success");
-    },
-    [addNotification]
-  );
 
   const handleProductSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -199,17 +136,6 @@ export function AdminPage(props: {
 
     return remaining;
   };
-
-  useEffect(() => {
-    localStorage.setItem("coupons", JSON.stringify(coupons));
-  }, [coupons]);
-
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      setDebouncedSearchTerm(searchTerm);
-    }, 500);
-    return () => clearTimeout(timer);
-  }, [searchTerm]);
 
   return (
     <div className="max-w-6xl mx-auto">
@@ -295,7 +221,11 @@ export function AdminPage(props: {
                         {product.name}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                        {getDisplayPrice(product, isAdmin, getRemainingStock)}
+                        {getDisplayPrice(
+                          product,
+                          isAdmin,
+                          getRemainingStock(product)
+                        )}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                         <span
@@ -321,7 +251,7 @@ export function AdminPage(props: {
                           수정
                         </button>
                         <button
-                          onClick={() => deleteProduct(product.id)}
+                          onClick={() => removeProduct(product.id)}
                           className="text-red-600 hover:text-red-900"
                         >
                           삭제
@@ -578,7 +508,7 @@ export function AdminPage(props: {
                       </div>
                     </div>
                     <button
-                      onClick={() => deleteCoupon(coupon.code)}
+                      onClick={() => removeCoupon(coupon.code)}
                       className="text-gray-400 hover:text-red-600 transition-colors"
                     >
                       <TrashIcon className="w-5 h-5" />

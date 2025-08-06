@@ -15,50 +15,67 @@
 // - SearchBar: 검색 입력
 // - ProductList: 상품 목록 표시
 
-import { Cart } from "./CartPage/Cart";
-import { CouponSelector } from "./CartPage/CouponSelector";
-import { OrderSummary } from "./CartPage/OrderSummary";
-import { ProductList } from "./CartPage/ProductList";
 import { useEffect } from "react";
+import { ProductList } from "./cart/ProductList";
+import { Cart } from "./cart/Cart";
+import { CouponSelector } from "./cart/CouponSelector";
+import { OrderSummary } from "./cart/OrderSummary";
 import { ProductWithUI } from "../constants";
 import { Coupon, CartItem } from "../../types";
 
+interface CartPageProps {
+  isAdmin: boolean;
+  searchTerm: string;
+  products: ProductWithUI[];
+  coupons: Coupon[];
+  cart: CartItem[];
+  selectedCoupon: Coupon | null;
+  addToCart: (product: ProductWithUI) => void;
+  removeFromCart: (productId: string) => void;
+  updateQuantity: (productId: string, newQuantity: number) => void;
+  applyCoupon: (coupon: Coupon) => void;
+  removeSelectedCoupon: () => void;
+  completeOrder: () => void;
+  calculateItemTotal: (item: CartItem) => number;
+  calculateCartTotal: () => {
+    totalBeforeDiscount: number;
+    totalAfterDiscount: number;
+  };
+  getRemainingStock: (product: ProductWithUI) => number;
+}
+
+/**
+ * 장바구니 페이지 컴포넌트
+ *
+ * 주요 기능:
+ * 1. 상품 목록 표시 (검색 기능 포함)
+ * 2. 장바구니 관리
+ * 3. 쿠폰 적용
+ * 4. 주문 처리
+ *
+ * Props로 모든 상태와 함수를 받아서 사용 (Props Drilling 방식)
+ */
 export function CartPage({
   isAdmin,
   searchTerm,
   products,
   coupons,
   cart,
-  selectedCoupon: selectedCouponFromCart,
+  selectedCoupon,
   addToCart,
   removeFromCart,
   updateQuantity,
-  totals,
-  getRemainingStock,
+  applyCoupon,
+  removeSelectedCoupon,
   completeOrder,
   calculateItemTotal,
-  applyCoupon,
-  removeCoupon,
-}: {
-  isAdmin: boolean;
-  searchTerm: string;
-  products: ProductWithUI[];
-  coupons: Coupon[];
-  cart: CartItem[]; // 타입 명확히 정의
-  selectedCoupon: any;
-  addToCart: (product: ProductWithUI) => void;
-  removeFromCart: (productId: string) => void;
-  updateQuantity: (productId: string, newQuantity: number) => void;
-  totals: { totalBeforeDiscount: number; totalAfterDiscount: number };
-  getRemainingStock: (product: ProductWithUI) => number;
-  completeOrder: () => void;
-  calculateItemTotal: (item: any) => number;
-  applyCoupon: (coupon: Coupon) => void;
-  removeCoupon: () => void;
-}) {
-  useEffect(() => {
-    localStorage.setItem("products", JSON.stringify(products));
-  }, [products]);
+  calculateCartTotal,
+  getRemainingStock,
+}: CartPageProps) {
+  // 장바구니 총액 계산
+  const totals = calculateCartTotal();
+
+  // products는 이미 useProducts 훅에서 localStorage 동기화됨
 
   return (
     <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
@@ -85,9 +102,9 @@ export function CartPage({
             <>
               <CouponSelector
                 coupons={coupons}
-                selectedCoupon={selectedCouponFromCart}
+                selectedCoupon={selectedCoupon}
                 applyCoupon={applyCoupon}
-                removeCoupon={removeCoupon}
+                removeCoupon={removeSelectedCoupon}
               />
 
               <OrderSummary totals={totals} completeOrder={completeOrder} />

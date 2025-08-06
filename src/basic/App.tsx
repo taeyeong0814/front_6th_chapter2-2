@@ -1,69 +1,52 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 
 import { AdminPage } from "./components/AdminPage";
 import { CartPage } from "./components/CartPage";
-import { Coupon } from "../types";
-import { ProductWithUI, initialProducts, initialCoupons } from "./constants";
 import { useCart } from "./hooks/useCart";
+import { useProducts } from "./hooks/useProducts";
+import { useCoupons } from "./hooks/useCoupons";
+import { useNotifications } from "./hooks/useNotifications";
 import { Header } from "./components/Header";
 import { NotificationList } from "./components/NotificationList";
 
 const App = () => {
   const [isAdmin, setIsAdmin] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
-  const [products, setProducts] = useState<ProductWithUI[]>(() => {
-    const saved = localStorage.getItem("products");
-    if (saved) {
-      try {
-        return JSON.parse(saved);
-      } catch {
-        return initialProducts;
-      }
-    }
-    return initialProducts;
-  });
-  const [coupons, setCoupons] = useState<Coupon[]>(() => {
-    const saved = localStorage.getItem("coupons");
-    if (saved) {
-      try {
-        return JSON.parse(saved);
-      } catch {
-        return initialCoupons;
-      }
-    }
-    return initialCoupons;
+
+  // 알림 훅
+  const { notifications, addNotification, removeNotification } =
+    useNotifications();
+
+  // 상품 관리 훅
+  const { products, addProduct, updateProduct, removeProduct } = useProducts({
+    addNotification,
   });
 
-  // useCart는 products를 받아서 cart, notifications 등 상태를 관리
+  // 쿠폰 관리 훅
+  const { coupons, addCoupon, removeCoupon } = useCoupons({ addNotification });
+
+  // 장바구니 관리 훅
   const {
-    notifications,
-    setNotifications,
     cart,
-    totalItemCount,
     selectedCoupon,
     addToCart,
     removeFromCart,
     updateQuantity,
-    totals,
-    getRemainingStock,
+    applyCoupon,
+    removeCoupon: removeSelectedCoupon,
     completeOrder,
     calculateItemTotal,
-    applyCoupon,
-    removeCoupon,
-  } = useCart(products);
+    calculateCartTotal,
+    getRemainingStock,
+  } = useCart({ addNotification });
 
-  // products 상태 변경 시 localStorage에 동기화
-  useEffect(() => {
-    localStorage.setItem("products", JSON.stringify(products));
-  }, [products]);
-
+  // 장바구니 총 아이템 수 계산
+  const totalItemCount = cart.reduce((total, item) => total + item.quantity, 0);
   return (
     <div className="min-h-screen bg-gray-50">
       <NotificationList
         notifications={notifications}
-        removeNotification={(id) =>
-          setNotifications((prev) => prev.filter((n) => n.id !== id))
-        }
+        removeNotification={removeNotification}
       />
 
       <Header
@@ -79,33 +62,32 @@ const App = () => {
           <AdminPage
             isAdmin={isAdmin}
             products={products}
-            setProducts={setProducts}
+            addProduct={addProduct}
+            updateProduct={updateProduct}
+            removeProduct={removeProduct}
             coupons={coupons}
-            setCoupons={setCoupons}
-            notifications={notifications}
-            setNotifications={setNotifications}
+            addCoupon={addCoupon}
+            removeCoupon={removeCoupon}
+            cart={cart}
+            addNotification={addNotification}
           />
         ) : (
           <CartPage
             isAdmin={isAdmin}
             searchTerm={searchTerm}
             products={products}
-            setProducts={setProducts}
             coupons={coupons}
-            setCoupons={setCoupons}
-            notifications={notifications}
-            setNotifications={setNotifications}
             cart={cart}
             selectedCoupon={selectedCoupon}
             addToCart={addToCart}
             removeFromCart={removeFromCart}
             updateQuantity={updateQuantity}
-            totals={totals}
-            getRemainingStock={getRemainingStock}
+            applyCoupon={applyCoupon}
+            removeSelectedCoupon={removeSelectedCoupon}
             completeOrder={completeOrder}
             calculateItemTotal={calculateItemTotal}
-            applyCoupon={applyCoupon}
-            removeCoupon={removeCoupon}
+            calculateCartTotal={calculateCartTotal}
+            getRemainingStock={getRemainingStock}
           />
         )}
       </main>

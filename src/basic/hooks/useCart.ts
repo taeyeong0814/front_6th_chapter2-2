@@ -23,16 +23,40 @@
 // - calculateTotal: 총액 계산 함수
 // - getRemainingStock: 재고 확인 함수
 // - clearCart: 장바구니 비우기 함수
-import { useCallback, useEffect, useState } from "react";
-import { CartItem, Coupon, Product, Notification } from "../../types";
+
+import { useState, useCallback, useEffect } from "react";
+import { CartItem, Coupon } from "../../types";
 import { ProductWithUI } from "../constants";
-import * as cartModel from "../models/cart";
 
-export function useCart(products: Product[]) {
-  const [totalItemCount, setTotalItemCount] = useState(0);
-  const [selectedCoupon, setSelectedCoupon] = useState<Coupon | null>(null);
-  const [notifications, setNotifications] = useState<Notification[]>([]);
+interface CartTotals {
+  totalBeforeDiscount: number;
+  totalAfterDiscount: number;
+}
 
+interface UseCartProps {
+  addNotification: (
+    message: string,
+    type?: "error" | "success" | "warning"
+  ) => void;
+}
+
+/**
+ * 장바구니 관련 상태와 로직을 관리하는 훅
+ *
+ * 주요 기능:
+ * 1. 장바구니 상태 관리 (items, selectedCoupon)
+ * 2. 상품 추가/제거/수량 업데이트
+ * 3. 쿠폰 적용/해제
+ * 4. 할인 계산 (상품별, 전체)
+ * 5. 재고 관리
+ * 6. 주문 완료 처리
+ * 7. localStorage 동기화
+ *
+ * @param addNotification 알림 메시지 표시 함수
+ * @returns 장바구니 관련 상태와 함수들
+ */
+export const useCart = ({ addNotification }: UseCartProps) => {
+  // 장바구니 상태
   const [cart, setCart] = useState<CartItem[]>(() => {
     const saved = localStorage.getItem("cart");
     if (saved) {
@@ -45,34 +69,7 @@ export function useCart(products: Product[]) {
     return [];
   });
 
-  // 순수함수들을 래핑한 헬퍼 함수들
-  const calculateItemTotal = useCallback(
-    (item: CartItem): number => {
-      return cartModel.calculateItemTotal(item, cart);
-    },
-    [cart]
-  );
-
-  const calculateCartTotal = useCallback((): {
-    totalBeforeDiscount: number;
-    totalAfterDiscount: number;
-    totalDiscount: number;
-  } => {
-    return cartModel.calculateCartTotal(cart, selectedCoupon);
-  }, [cart, selectedCoupon]);
-
-  const getRemainingStock = useCallback(
-    (product: Product): number => {
-      return cartModel.getRemainingStock(product, cart);
-    },
-    [cart]
-  );
-
-  useEffect(() => {
-    const count = cart.reduce((sum, item) => sum + item.quantity, 0);
-    setTotalItemCount(count);
-  }, [cart]);
-
+  // localStorage 동기화
   useEffect(() => {
     if (cart.length > 0) {
       localStorage.setItem("cart", JSON.stringify(cart));
@@ -81,20 +78,94 @@ export function useCart(products: Product[]) {
     }
   }, [cart]);
 
-  // 알림 관리
-  const addNotification = useCallback(
-    (message: string, type: "error" | "success" | "warning" = "success") => {
-      const id = Date.now().toString();
-      setNotifications((prev) => [...prev, { id, message, type }]);
+  // 쿠폰 상태
+  const [selectedCoupon, setSelectedCoupon] = useState<Coupon | null>(null);
 
-      setTimeout(() => {
-        setNotifications((prev) => prev.filter((n) => n.id !== id));
-      }, 3000);
+  // Origin의 getMaxApplicableDiscount 함수
+  // 상품의 수량별 할인율과 대량 구매 보너스 할인을 계산
+  const getMaxApplicableDiscount = useCallback(
+    (item: CartItem): number => {
+      const { discounts } = item.product;
+      const { quantity } = item;
+
+      // 기본 할인율 계산 (수량에 따른 최대 할인율)
+      const baseDiscount = discounts.reduce((maxDiscount, discount) => {
+        return quantity >= discount.quantity && discount.rate > maxDiscount
+          ? discount.rate
+          : maxDiscount;
+      }, 0);
+
+      // 대량 구매 보너스: 장바구니에 10개 이상 상품이 있으면 추가 5% 할인
+      const hasBulkPurchase = cart.some((cartItem) => cartItem.quantity >= 10);
+      if (hasBulkPurchase) {
+        return Math.min(baseDiscount + 0.05, 0.5); // 최대 50% 할인 제한
+      }
+
+      return baseDiscount;
     },
-    []
+    [cart]
   );
 
-  // 장바구니 조작 함수들
+  // Origin의 calculateItemTotal 함수
+  // 개별 상품의 할인이 적용된 총 가격 계산
+  const calculateItemTotal = useCallback(
+    (item: CartItem): number => {
+      const { price } = item.product;
+      const { quantity } = item;
+      const discount = getMaxApplicableDiscount(item);
+
+      return Math.round(price * quantity * (1 - discount));
+    },
+    [getMaxApplicableDiscount]
+  );
+
+  // Origin의 calculateCartTotal 함수
+  // 장바구니 전체의 할인 전/후 총액 계산 (쿠폰 적용 포함)
+  const calculateCartTotal = useCallback((): CartTotals => {
+    let totalBeforeDiscount = 0;
+    let totalAfterDiscount = 0;
+
+    // 각 상품별 가격 합산
+    cart.forEach((item) => {
+      const itemPrice = item.product.price * item.quantity;
+      totalBeforeDiscount += itemPrice;
+      totalAfterDiscount += calculateItemTotal(item);
+    });
+
+    // 쿠폰 할인 적용
+    if (selectedCoupon) {
+      if (selectedCoupon.discountType === "amount") {
+        totalAfterDiscount = Math.max(
+          0,
+          totalAfterDiscount - selectedCoupon.discountValue
+        );
+      } else {
+        totalAfterDiscount = Math.round(
+          totalAfterDiscount * (1 - selectedCoupon.discountValue / 100)
+        );
+      }
+    }
+
+    return {
+      totalBeforeDiscount: Math.round(totalBeforeDiscount),
+      totalAfterDiscount: Math.round(totalAfterDiscount),
+    };
+  }, [cart, selectedCoupon, calculateItemTotal]);
+
+  // Origin의 getRemainingStock 함수
+  // 상품의 남은 재고 수량 계산 (현재 장바구니에 담긴 수량 제외)
+  const getRemainingStock = useCallback(
+    (product: ProductWithUI): number => {
+      const cartItem = cart.find((item) => item.product.id === product.id);
+      const remaining = product.stock - (cartItem?.quantity || 0);
+
+      return remaining;
+    },
+    [cart]
+  );
+
+  // 장바구니에 상품 추가
+  // 재고 확인 후 기존 상품이면 수량 증가, 새 상품이면 추가
   const addToCart = useCallback(
     (product: ProductWithUI) => {
       const remainingStock = getRemainingStock(product);
@@ -104,24 +175,29 @@ export function useCart(products: Product[]) {
       }
 
       setCart((prevCart) => {
-        // 재고 체크를 다시 한번 (동시성 이슈 방지)
-        const currentStock = cartModel.getRemainingStock(product, prevCart);
-        if (currentStock <= 0) {
-          addNotification("재고가 부족합니다!", "error");
-          return prevCart;
-        }
-
-        const newCart = cartModel.addItemToCart(prevCart, product, 1);
-        const updatedItem = newCart.find(
+        // Origin 로직: 기존 상품이 있으면 수량 증가, 없으면 새로 추가
+        const existingItem = prevCart.find(
           (item) => item.product.id === product.id
         );
 
-        if (updatedItem && updatedItem.quantity > product.stock) {
-          addNotification(`재고는 ${product.stock}개까지만 있습니다.`, "error");
-          return prevCart;
-        }
+        if (existingItem) {
+          const newQuantity = existingItem.quantity + 1;
+          if (newQuantity > product.stock) {
+            addNotification(
+              `재고는 ${product.stock}개까지만 있습니다.`,
+              "error"
+            );
+            return prevCart;
+          }
 
-        return newCart;
+          return prevCart.map((item) =>
+            item.product.id === product.id
+              ? { ...item, quantity: newQuantity }
+              : item
+          );
+        } else {
+          return [...prevCart, { product, quantity: 1 }];
+        }
       });
 
       addNotification("장바구니에 담았습니다", "success");
@@ -129,10 +205,15 @@ export function useCart(products: Product[]) {
     [getRemainingStock, addNotification]
   );
 
+  // 장바구니에서 상품 제거
   const removeFromCart = useCallback((productId: string) => {
-    setCart((prevCart) => cartModel.removeItemFromCart(prevCart, productId));
+    setCart((prevCart) =>
+      prevCart.filter((item) => item.product.id !== productId)
+    );
   }, []);
 
+  // 장바구니 상품 수량 변경
+  // 0 이하로 설정하면 상품 제거, 재고 초과시 최대 재고로 제한
   const updateQuantity = useCallback(
     (productId: string, newQuantity: number) => {
       if (newQuantity <= 0) {
@@ -140,31 +221,35 @@ export function useCart(products: Product[]) {
         return;
       }
 
-      const product = products.find((p) => p.id === productId);
-      if (!product) return;
-
-      if (newQuantity > product.stock) {
-        addNotification(`재고는 ${product.stock}개까지만 있습니다.`, "error");
-        return;
-      }
-
       setCart((prevCart) =>
-        cartModel.updateCartItemQuantity(prevCart, productId, newQuantity)
+        prevCart.map((item) => {
+          if (item.product.id === productId) {
+            const maxQuantity = item.product.stock;
+            const finalQuantity = Math.min(newQuantity, maxQuantity);
+
+            if (finalQuantity !== newQuantity) {
+              addNotification(
+                `재고는 ${maxQuantity}개까지만 있습니다.`,
+                "error"
+              );
+            }
+
+            return { ...item, quantity: finalQuantity };
+          }
+          return item;
+        })
       );
     },
-    [products, removeFromCart, addNotification]
+    [removeFromCart, addNotification]
   );
 
-  const clearCart = useCallback(() => {
-    setCart([]);
-    setSelectedCoupon(null);
-  }, []);
-
-  // 쿠폰 관리 함수들
+  // Origin의 applyCoupon 로직 - percentage 쿠폰은 10,000원 이상 구매시만 사용 가능
+  // 쿠폰 적용 가능 여부 확인 후 적용
   const applyCoupon = useCallback(
     (coupon: Coupon) => {
       const currentTotal = calculateCartTotal().totalAfterDiscount;
 
+      // percentage 쿠폰은 10,000원 이상 구매시에만 사용 가능
       if (currentTotal < 10000 && coupon.discountType === "percentage") {
         addNotification(
           "percentage 쿠폰은 10,000원 이상 구매 시 사용 가능합니다.",
@@ -176,15 +261,17 @@ export function useCart(products: Product[]) {
       setSelectedCoupon(coupon);
       addNotification("쿠폰이 적용되었습니다.", "success");
     },
-    [addNotification, calculateCartTotal]
+    [calculateCartTotal, addNotification]
   );
 
+  // 적용된 쿠폰 제거
   const removeCoupon = useCallback(() => {
     setSelectedCoupon(null);
-    addNotification("쿠폰이 해제되었습니다.", "success");
+    addNotification("쿠폰 적용이 해제되었습니다.", "success");
   }, [addNotification]);
 
-  // 주문 완료
+  // Origin의 completeOrder 로직
+  // 주문 완료 처리 (주문번호 생성, 장바구니 초기화)
   const completeOrder = useCallback(() => {
     const orderNumber = `ORD-${Date.now()}`;
     addNotification(
@@ -195,35 +282,26 @@ export function useCart(products: Product[]) {
     setSelectedCoupon(null);
   }, [addNotification]);
 
-  const totals = calculateCartTotal();
-
   return {
-    // 상태값들
+    // 상태값
     cart,
     selectedCoupon,
-    totalItemCount,
-    notifications,
-    totals,
-
-    // 계산 함수들 (순수함수 래핑)
-    calculateItemTotal,
-    getRemainingStock,
 
     // 장바구니 조작 함수들
     addToCart,
     removeFromCart,
     updateQuantity,
-    clearCart,
 
     // 쿠폰 관리 함수들
     applyCoupon,
     removeCoupon,
 
-    // 주문 완료
+    // 주문 관리 함수들
     completeOrder,
 
-    // 상태 setter (내부 사용용)
-    setNotifications,
-    setCart,
+    // 계산 함수들
+    calculateItemTotal,
+    calculateCartTotal,
+    getRemainingStock,
   };
-}
+};
