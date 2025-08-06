@@ -15,23 +15,18 @@
 // - SearchBar: 검색 입력
 // - ProductList: 상품 목록 표시
 
-import { ProductImageIcon, BagIcon, EmptyBagIcon, BagCloseIcon } from "./icons";
-// - Cart: 장바구니 표시 및 결제
-
+import { ProductImageIcon } from "./icons";
+import { Cart } from "./CartPage/Cart";
 import { useEffect, useState } from "react";
 import { ProductWithUI } from "../constants";
 import { getDisplayPrice } from "../utils/price";
-import { Coupon, Notification } from "../../types";
+import { Coupon, CartItem } from "../../types";
 
 export function CartPage({
   isAdmin,
   searchTerm,
   products,
-  setProducts,
   coupons,
-  setCoupons,
-  notifications,
-  setNotifications,
   cart,
   selectedCoupon: selectedCouponFromCart,
   addToCart,
@@ -47,12 +42,8 @@ export function CartPage({
   isAdmin: boolean;
   searchTerm: string;
   products: ProductWithUI[];
-  setProducts: React.Dispatch<React.SetStateAction<ProductWithUI[]>>;
   coupons: Coupon[];
-  setCoupons: React.Dispatch<React.SetStateAction<Coupon[]>>;
-  notifications: Notification[];
-  setNotifications: React.Dispatch<React.SetStateAction<Notification[]>>;
-  cart: any[];
+  cart: CartItem[]; // 타입 명확히 정의
   selectedCoupon: any;
   addToCart: (product: ProductWithUI) => void;
   removeFromCart: (productId: string) => void;
@@ -65,8 +56,6 @@ export function CartPage({
   removeCoupon: () => void;
 }) {
   const [debouncedSearchTerm, setDebouncedSearchTerm] = useState(searchTerm);
-  // 이제 useCart에서 관리하는 selectedCoupon을 사용하므로 로컬 상태 제거
-  // const [selectedCoupon, setSelectedCoupon] = useState<Coupon | null>(null);
 
   const filteredProducts = debouncedSearchTerm
     ? products.filter(
@@ -198,81 +187,12 @@ export function CartPage({
 
       <div className="lg:col-span-1">
         <div className="sticky top-24 space-y-4">
-          <section className="bg-white rounded-lg border border-gray-200 p-4">
-            <h2 className="text-lg font-semibold mb-4 flex items-center">
-              <BagIcon className="w-5 h-5 mr-2" />
-              장바구니
-            </h2>
-            {cart.length === 0 ? (
-              <div className="text-center py-8">
-                <EmptyBagIcon />
-                <p className="text-gray-500 text-sm">장바구니가 비어있습니다</p>
-              </div>
-            ) : (
-              <div className="space-y-3">
-                {cart.map((item) => {
-                  const itemTotal = calculateItemTotal(item);
-                  const originalPrice = item.product.price * item.quantity;
-                  const hasDiscount = itemTotal < originalPrice;
-                  const discountRate = hasDiscount
-                    ? Math.round((1 - itemTotal / originalPrice) * 100)
-                    : 0;
-
-                  return (
-                    <div
-                      key={item.product.id}
-                      className="border-b pb-3 last:border-b-0"
-                    >
-                      <div className="flex justify-between items-start mb-2">
-                        <h4 className="text-sm font-medium text-gray-900 flex-1">
-                          {item.product.name}
-                        </h4>
-                        <button
-                          onClick={() => removeFromCart(item.product.id)}
-                          className="text-gray-400 hover:text-red-500 ml-2"
-                        >
-                          <BagCloseIcon />
-                        </button>
-                      </div>
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center">
-                          <button
-                            onClick={() =>
-                              updateQuantity(item.product.id, item.quantity - 1)
-                            }
-                            className="w-6 h-6 rounded border border-gray-300 flex items-center justify-center hover:bg-gray-100"
-                          >
-                            <span className="text-xs">−</span>
-                          </button>
-                          <span className="mx-3 text-sm font-medium w-8 text-center">
-                            {item.quantity}
-                          </span>
-                          <button
-                            onClick={() =>
-                              updateQuantity(item.product.id, item.quantity + 1)
-                            }
-                            className="w-6 h-6 rounded border border-gray-300 flex items-center justify-center hover:bg-gray-100"
-                          >
-                            <span className="text-xs">+</span>
-                          </button>
-                        </div>
-                        <div className="text-right">
-                          {hasDiscount && (
-                            <span className="text-xs text-red-500 font-medium block">
-                              -{discountRate}%
-                            </span>
-                          )}
-                          <p className="text-sm font-medium text-gray-900">
-                            {Math.round(itemTotal).toLocaleString()}원
-                          </p>
-                        </div>
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
-            )}
-          </section>
+          <Cart
+            cart={cart}
+            removeFromCart={removeFromCart}
+            updateQuantity={updateQuantity}
+            calculateItemTotal={calculateItemTotal}
+          />
 
           {cart.length > 0 && (
             <>
