@@ -1,6 +1,5 @@
 import { useCallback } from "react";
 import { useAtom } from "jotai";
-import { Notification } from "../type/types";
 import { notificationsAtom } from "../stores";
 
 export function useNotifications() {

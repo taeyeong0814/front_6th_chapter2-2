@@ -4,6 +4,7 @@ import { ProductWithUI } from "../../type/types";
 import { getDisplayPrice } from "../../utils/price";
 import { useDebounce } from "../../utils/hooks/useDebounce";
 import { productsAtom, searchTermAtom } from "../../stores";
+import { isAdminAtom } from "../../stores";
 
 interface ProductListProps {
   addToCart: (product: ProductWithUI) => void;
@@ -14,11 +15,11 @@ export function ProductList({
   addToCart,
   getRemainingStock,
 }: ProductListProps) {
+  const isAdmin = useAtomValue(isAdminAtom);
   const [products] = useAtom(productsAtom);
   const searchTerm = useAtomValue(searchTermAtom);
   // 검색어 디바운싱 적용 (300ms 지연)
   const debouncedSearchTerm = useDebounce(searchTerm, 300);
-
   const filteredProducts = debouncedSearchTerm
     ? products.filter(
         (product) =>
@@ -88,7 +89,7 @@ export function ProductList({
                     <p className="text-lg font-bold text-gray-900">
                       {getDisplayPrice(
                         product,
-                        // isAdmin,
+                        isAdmin,
                         getRemainingStock(product)
                       )}
                     </p>
