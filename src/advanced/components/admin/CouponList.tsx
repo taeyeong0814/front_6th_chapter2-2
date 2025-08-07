@@ -1,6 +1,6 @@
 // 쿠폰 목록 컴포넌트 (기존 AdminPage 구조 유지)
 import { TrashIcon, PlusIcon } from "../icons";
-import { Coupon } from "../../../types";
+import { Coupon } from "../../type/types";
 
 interface CouponListProps {
   coupons: Coupon[];

@@ -1,5 +1,5 @@
 // 초기 데이터 정의
-import { Coupon, ProductWithUI } from "../../types";
+import { Coupon, ProductWithUI } from "../type/types";
 
 export const initialProducts: ProductWithUI[] = [
   {

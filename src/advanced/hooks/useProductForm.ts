@@ -1,6 +1,6 @@
 // 상품 폼 상태 관리 Hook
 import { useState, useCallback } from "react";
-import { ProductFormData, ProductWithUI } from "../../types";
+import { ProductFormData, ProductWithUI } from "../type/types";
 
 /**
  * 상품 폼 상태 관리 훅

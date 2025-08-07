@@ -19,8 +19,7 @@ import { ProductList } from "./cart/ProductList";
 import { Cart } from "./cart/Cart";
 import { CouponSelector } from "./cart/CouponSelector";
 import { OrderSummary } from "./cart/OrderSummary";
-import { ProductWithUI } from "../../types";
-import { Coupon, CartItem } from "../../types";
+import { ProductWithUI, Coupon, CartItem } from "../type/types";
 
 interface CartPageProps {
   isAdmin: boolean;

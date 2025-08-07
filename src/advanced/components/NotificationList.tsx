@@ -1,4 +1,4 @@
-import { Notification } from "../../types";
+import { Notification } from "../type/types";
 import { UIToast } from "./ui/UIToast";
 
 export function NotificationList({

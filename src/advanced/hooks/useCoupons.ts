@@ -9,7 +9,7 @@
 // - removeCoupon: 쿠폰 삭제
 
 import { useCallback } from "react";
-import { Coupon } from "../../types";
+import { Coupon } from "../type/types";
 import { initialCoupons } from "../data/initialData";
 import { useLocalStorage } from "../utils/hooks/useLocalStorage";
 

@@ -1,6 +1,6 @@
 // 쿠폰 폼 상태 관리 Hook
 import { useState, useCallback } from "react";
-import { CouponFormData, Coupon } from "../../types";
+import { CouponFormData, Coupon } from "../type/types";
 
 /**
  * 쿠폰 폼 상태 관리 훅

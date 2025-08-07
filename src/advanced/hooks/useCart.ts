@@ -25,8 +25,8 @@
 // - clearCart: 장바구니 비우기 함수
 
 import { useState, useCallback, useEffect } from "react";
-import { CartItem, Coupon } from "../../types";
-import { ProductWithUI } from "../../types";
+import { CartItem, Coupon } from "../type/types";
+import { ProductWithUI } from "../type/types";
 import {
   COUPON_TYPE_AMOUNT,
   COUPON_TYPE_PERCENTAGE,

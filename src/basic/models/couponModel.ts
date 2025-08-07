@@ -1,5 +1,5 @@
 // 쿠폰 관련 비즈니스 로직 (순수 함수)
-import { Coupon } from "../../types";
+import { Coupon } from "../type/types";
 import { isValidCouponCode } from "../utils/validators";
 
 // 검증 함수들은 utils/validators.ts에서 import

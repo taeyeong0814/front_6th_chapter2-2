@@ -2,9 +2,10 @@
 import { useState } from "react";
 import { ProductManagement } from "./admin/ProductManagement";
 import { CouponManagement } from "./admin/CouponManagement";
-import { Coupon, CartItem, ProductWithUI } from "../../types";
+import { Coupon, CartItem, ProductWithUI } from "../type/types";
 
 interface AdminPageProps {
+  isAdmin: boolean;
   products: ProductWithUI[];
   addProduct: (newProduct: Omit<ProductWithUI, "id">) => void;
   updateProduct: (productId: string, updates: Partial<ProductWithUI>) => void;
@@ -33,6 +34,7 @@ interface AdminPageProps {
  * - 타입 안정성 향상
  */
 export function AdminPage({
+  isAdmin,
   products,
   addProduct,
   updateProduct,
@@ -84,6 +86,7 @@ export function AdminPage({
       {/* 탭 컨텐츠 */}
       {activeTab === "products" ? (
         <ProductManagement
+          isAdmin={isAdmin}
           products={products}
           addProduct={addProduct}
           updateProduct={updateProduct}

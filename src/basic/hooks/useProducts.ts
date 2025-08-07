@@ -14,8 +14,8 @@
 // - removeProductDiscount: 할인 규칙 삭제
 
 import { useState, useCallback, useEffect } from "react";
-import { Discount } from "../../types";
-import { ProductWithUI } from "../../types";
+import { Discount } from "../type/types";
+import { ProductWithUI } from "../type/types";
 import { initialProducts } from "../data/initialData";
 
 interface UseProductsProps {

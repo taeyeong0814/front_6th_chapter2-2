@@ -1,5 +1,5 @@
 // 할인 관련 비즈니스 로직 (순수 함수)
-import { Discount, CartItem } from "../../types";
+import { Discount, CartItem } from "../type/types";
 import { isValidDiscountRate, isValidQuantity } from "../utils/validators";
 
 /**

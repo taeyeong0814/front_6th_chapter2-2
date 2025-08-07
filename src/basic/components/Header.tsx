@@ -1,4 +1,4 @@
-import { CartItem } from "../../types";
+import { CartItem } from "../type/types";
 import { CartIcon } from "./icons/CartIcon";
 
 export function Header(props: {

@@ -18,7 +18,7 @@
 // 장바구니 비즈니스 로직 (순수 함수)
 // 모든 함수는 순수 함수로 구현 (부작용 없음, 같은 입력에 항상 같은 출력)
 
-import { CartItem, Product, Coupon } from "../../types";
+import { CartItem, Product, Coupon } from "../type/types";
 
 /**
  * 개별 아이템의 적용 가능한 최대 할인율 계산

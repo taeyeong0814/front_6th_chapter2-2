@@ -1,5 +1,5 @@
 // 상품 관련 비즈니스 로직 (순수 함수)
-import { Product, Discount } from "../../types";
+import { Product, Discount } from "../type/types";
 import {
   isValidProductName,
   isValidPrice,

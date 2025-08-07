@@ -1,6 +1,6 @@
 // 쿠폰 추가 폼 컴포넌트 (기존 AdminPage 구조 유지)
 import React from "react";
-import { CouponFormData } from "../../../types";
+import { CouponFormData } from "../../type/types";
 import {
   MAX_PERCENTAGE_DISCOUNT,
   MAX_AMOUNT_DISCOUNT,

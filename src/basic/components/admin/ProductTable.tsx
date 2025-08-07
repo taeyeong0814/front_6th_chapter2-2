@@ -1,5 +1,5 @@
 // 상품 테이블 컴포넌트 (기존 AdminPage 구조 유지)
-import { ProductWithUI, Product } from "../../../types";
+import { ProductWithUI, Product } from "../../type/types";
 import { LOW_STOCK_THRESHOLD } from "../../constants/product";
 
 interface ProductTableProps {

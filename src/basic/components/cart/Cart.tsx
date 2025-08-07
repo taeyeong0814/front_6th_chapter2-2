@@ -1,5 +1,5 @@
 import { BagIcon, EmptyBagIcon, BagCloseIcon } from "../icons";
-import { CartItem } from "../../../types";
+import { CartItem } from "../../type/types";
 
 interface CartProps {
   cart: CartItem[];

@@ -1,7 +1,7 @@
 // 상품 추가/수정 폼 컴포넌트 (기존 AdminPage 구조 유지)
 import React from "react";
 import { CloseIcon } from "../icons";
-import { ProductFormData } from "../../../types";
+import { ProductFormData } from "../../type/types";
 
 interface ProductFormProps {
   isVisible: boolean;

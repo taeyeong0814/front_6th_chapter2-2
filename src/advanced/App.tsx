@@ -7,7 +7,7 @@ import { useCoupons } from "./hooks/useCoupons";
 import { useNotifications } from "./hooks/useNotifications";
 import { Header } from "./components/Header";
 import { NotificationList } from "./components/NotificationList";
-import { AdminPage } from "./components/AdminPage.new";
+import { AdminPage } from "./components/AdminPage";
 
 const App = () => {
   const [isAdmin, setIsAdmin] = useState(false);

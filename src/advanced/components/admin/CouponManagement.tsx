@@ -3,7 +3,7 @@ import React from "react";
 import { CouponList } from "./CouponList";
 import { CouponForm } from "./CouponForm";
 import { useCouponForm } from "../../hooks/useCouponForm";
-import { Coupon } from "../../../types";
+import { Coupon } from "../../type/types";
 
 interface CouponManagementProps {
   coupons: Coupon[];

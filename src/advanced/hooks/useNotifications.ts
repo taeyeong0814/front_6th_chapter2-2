@@ -1,5 +1,5 @@
 import { useState, useCallback } from "react";
-import { Notification } from "../../types";
+import { Notification } from "../type/types";
 
 export function useNotifications() {
   const [notifications, setNotifications] = useState<Notification[]>([]);

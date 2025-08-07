@@ -1,4 +1,4 @@
-import { Notification } from "../../../types";
+import { Notification } from "../../type/types";
 import { CloseIcon } from "../icons";
 
 interface UIToastProps {
