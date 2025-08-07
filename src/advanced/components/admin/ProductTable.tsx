@@ -1,6 +1,8 @@
 // 상품 테이블 컴포넌트 (기존 AdminPage 구조 유지)
+import { useAtom } from "jotai";
 import { ProductWithUI, Product } from "../../type/types";
 import { LOW_STOCK_THRESHOLD } from "../../constants/product";
+import { isAdminAtom } from "../../stores/isAdminAtom";
 
 interface ProductTableProps {
   products: ProductWithUI[];
@@ -12,7 +14,6 @@ interface ProductTableProps {
     isAdmin: boolean,
     remainingStock: number
   ) => string;
-  isAdmin: boolean;
 }
 
 export function ProductTable({
@@ -21,8 +22,8 @@ export function ProductTable({
   onRemoveProduct,
   getRemainingStock,
   getDisplayPrice,
-  isAdmin,
 }: ProductTableProps) {
+  const [isAdmin] = useAtom(isAdminAtom);
   return (
     <div className="overflow-x-auto">
       <table className="w-full">

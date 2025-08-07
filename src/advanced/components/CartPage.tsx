@@ -23,9 +23,7 @@ import { ProductWithUI } from "../type/types";
 import { Coupon, CartItem } from "../type/types";
 
 interface CartPageProps {
-  isAdmin: boolean;
   searchTerm: string;
-  products: ProductWithUI[];
   coupons: Coupon[];
   cart: CartItem[];
   selectedCoupon: Coupon | null;
@@ -55,9 +53,7 @@ interface CartPageProps {
  * Props로 모든 상태와 함수를 받아서 사용 (Props Drilling 방식)
  */
 export function CartPage({
-  isAdmin,
   searchTerm,
-  products,
   coupons,
   cart,
   selectedCoupon,
@@ -78,11 +74,9 @@ export function CartPage({
     <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
       <div className="lg:col-span-3">
         <ProductList
-          products={products}
           searchTerm={searchTerm}
           addToCart={addToCart}
           getRemainingStock={getRemainingStock}
-          isAdmin={isAdmin}
         />
       </div>
 

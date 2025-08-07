@@ -8,9 +8,11 @@ import { useNotifications } from "./hooks/useNotifications";
 import { Header } from "./components/Header";
 import { NotificationList } from "./components/NotificationList";
 import { AdminPage } from "./components/AdminPage";
+import { useAtomValue } from "jotai";
+import { isAdminAtom } from "./stores/isAdminAtom";
 
 const App = () => {
-  const [isAdmin, setIsAdmin] = useState(false);
+  const isAdmin = useAtomValue(isAdminAtom);
   const [searchTerm, setSearchTerm] = useState("");
 
   // 알림 훅
@@ -50,8 +52,6 @@ const App = () => {
       />
 
       <Header
-        isAdmin={isAdmin}
-        setIsAdmin={setIsAdmin}
         searchTerm={searchTerm}
         setSearchTerm={setSearchTerm}
         cart={cart}
@@ -60,7 +60,6 @@ const App = () => {
       <main className="max-w-7xl mx-auto px-4 py-8">
         {isAdmin ? (
           <AdminPage
-            isAdmin={isAdmin}
             products={products}
             addProduct={addProduct}
             updateProduct={updateProduct}
@@ -73,9 +72,7 @@ const App = () => {
           />
         ) : (
           <CartPage
-            isAdmin={isAdmin}
             searchTerm={searchTerm}
-            products={products}
             coupons={coupons}
             cart={cart}
             selectedCoupon={selectedCoupon}

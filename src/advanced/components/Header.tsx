@@ -1,22 +1,16 @@
+import { useAtom } from "jotai";
 import { CartItem } from "../type/types";
 import { CartIcon } from "./icons/CartIcon";
+import { isAdminAtom } from "../stores/isAdminAtom";
 
 export function Header(props: {
-  isAdmin: boolean;
-  setIsAdmin: (value: boolean) => void;
   searchTerm: string;
   setSearchTerm: (term: string) => void;
   cart: CartItem[];
   totalItemCount: number; // 총 아이템 수
 }) {
-  const {
-    isAdmin,
-    setIsAdmin,
-    searchTerm,
-    setSearchTerm,
-    cart,
-    totalItemCount,
-  } = props;
+  const [isAdmin, setIsAdmin] = useAtom(isAdminAtom);
+  const { searchTerm, setSearchTerm, cart, totalItemCount } = props;
 
   return (
     <header className="bg-white shadow-sm sticky top-0 z-40 border-b">

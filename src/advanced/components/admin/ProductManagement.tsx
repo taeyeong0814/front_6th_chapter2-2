@@ -7,7 +7,6 @@ import { useProductForm } from "../../hooks/useProductForm";
 import { CartItem, Product, ProductWithUI } from "../../type/types";
 
 interface ProductManagementProps {
-  isAdmin: boolean;
   products: ProductWithUI[];
   addProduct: (newProduct: Omit<ProductWithUI, "id">) => void;
   updateProduct: (productId: string, updates: Partial<ProductWithUI>) => void;
@@ -20,7 +19,6 @@ interface ProductManagementProps {
 }
 
 export function ProductManagement({
-  isAdmin,
   products,
   addProduct,
   updateProduct,
@@ -75,7 +73,6 @@ export function ProductManagement({
         onRemoveProduct={handleRemoveProduct}
         getRemainingStock={getRemainingStock}
         getDisplayPrice={getDisplayPrice}
-        isAdmin={isAdmin}
       />
 
       <ProductForm
