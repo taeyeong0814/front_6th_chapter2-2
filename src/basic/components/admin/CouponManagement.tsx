@@ -1,8 +1,9 @@
 // 쿠폰 관리 섹션 컴포넌트 (기존 AdminPage 구조 유지)
-import React, { useState } from "react";
+import React from "react";
 import { CouponList } from "./CouponList";
 import { CouponForm } from "./CouponForm";
-import { Coupon, CouponFormData } from "../../../types";
+import { useCouponForm } from "../../hooks/useCouponForm";
+import { Coupon } from "../../../types";
 
 interface CouponManagementProps {
   coupons: Coupon[];
@@ -20,33 +21,23 @@ export function CouponManagement({
   removeCoupon,
   addNotification,
 }: CouponManagementProps) {
-  const [showCouponForm, setShowCouponForm] = useState(false);
-  const [couponForm, setCouponForm] = useState<CouponFormData>({
-    name: "",
-    code: "",
-    discountType: "amount",
-    discountValue: 0,
-  });
+  // 폼 상태 관리 로직을 hook으로 분리
+  const {
+    showCouponForm,
+    couponForm,
+    setCouponForm,
+    startAddCoupon,
+    handleSubmit,
+    handleCancel,
+  } = useCouponForm();
 
   const handleCouponSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    addCoupon(couponForm);
-    setCouponForm({
-      name: "",
-      code: "",
-      discountType: "amount",
-      discountValue: 0,
-    });
-    setShowCouponForm(false);
+    handleSubmit(e, addCoupon);
   };
 
   const handleRemoveCoupon = (couponCode: string) => {
     removeCoupon(couponCode);
     addNotification("쿠폰이 삭제되었습니다", "success");
-  };
-
-  const handleCancelForm = () => {
-    setShowCouponForm(false);
   };
 
   return (
@@ -58,7 +49,7 @@ export function CouponManagement({
         <CouponList
           coupons={coupons}
           onRemoveCoupon={handleRemoveCoupon}
-          onAddNewCoupon={() => setShowCouponForm(!showCouponForm)}
+          onAddNewCoupon={startAddCoupon}
         />
 
         <CouponForm
@@ -66,7 +57,7 @@ export function CouponManagement({
           formData={couponForm}
           onFormDataChange={setCouponForm}
           onSubmit={handleCouponSubmit}
-          onCancel={handleCancelForm}
+          onCancel={handleCancel}
           addNotification={addNotification}
         />
       </div>

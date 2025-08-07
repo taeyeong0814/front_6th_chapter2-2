@@ -1,14 +1,10 @@
 // 상품 관리 섹션 컴포넌트 (기존 AdminPage 구조 유지)
-import React, { useState } from "react";
+import React from "react";
 import { ProductTable } from "./ProductTable";
 import { ProductForm } from "./ProductForm";
 import { getDisplayPrice } from "../../utils/price";
-import {
-  CartItem,
-  Product,
-  ProductFormData,
-  ProductWithUI,
-} from "../../../types";
+import { useProductForm } from "../../hooks/useProductForm";
+import { CartItem, Product, ProductWithUI } from "../../../types";
 
 interface ProductManagementProps {
   products: ProductWithUI[];
@@ -30,15 +26,17 @@ export function ProductManagement({
   cart,
   addNotification,
 }: ProductManagementProps) {
-  const [editingProduct, setEditingProduct] = useState<string | null>(null);
-  const [showProductForm, setShowProductForm] = useState(false);
-  const [productForm, setProductForm] = useState<ProductFormData>({
-    name: "",
-    price: 0,
-    stock: 0,
-    description: "",
-    discounts: [],
-  });
+  // 폼 상태 관리 로직을 hook으로 분리
+  const {
+    editingProduct,
+    showProductForm,
+    productForm,
+    setProductForm,
+    startAddProduct,
+    startEditProduct,
+    handleSubmit,
+    handleCancel,
+  } = useProductForm();
 
   const getRemainingStock = (product: Product): number => {
     const cartItem = cart.find((item) => item.product.id === product.id);
@@ -46,55 +44,13 @@ export function ProductManagement({
     return remaining;
   };
 
-  const startEditProduct = (product: ProductWithUI) => {
-    setEditingProduct(product.id);
-    setProductForm({
-      name: product.name,
-      price: product.price,
-      stock: product.stock,
-      description: product.description || "",
-      discounts: product.discounts || [],
-    });
-    setShowProductForm(true);
-  };
-
   const handleProductSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (editingProduct && editingProduct !== "new") {
-      updateProduct(editingProduct, productForm);
-      setEditingProduct(null);
-    } else {
-      addProduct({
-        ...productForm,
-        discounts: productForm.discounts,
-      });
-    }
-    setProductForm({
-      name: "",
-      price: 0,
-      stock: 0,
-      description: "",
-      discounts: [],
-    });
-    setEditingProduct(null);
-    setShowProductForm(false);
+    handleSubmit(e, addProduct, updateProduct);
   };
 
   const handleRemoveProduct = (productId: string) => {
     removeProduct(productId);
     addNotification("상품이 삭제되었습니다", "success");
-  };
-
-  const handleCancelForm = () => {
-    setEditingProduct(null);
-    setProductForm({
-      name: "",
-      price: 0,
-      stock: 0,
-      description: "",
-      discounts: [],
-    });
-    setShowProductForm(false);
   };
 
   return (
@@ -103,17 +59,7 @@ export function ProductManagement({
         <div className="flex justify-between items-center">
           <h2 className="text-lg font-semibold">상품 목록</h2>
           <button
-            onClick={() => {
-              setEditingProduct("new");
-              setProductForm({
-                name: "",
-                price: 0,
-                stock: 0,
-                description: "",
-                discounts: [],
-              });
-              setShowProductForm(true);
-            }}
+            onClick={startAddProduct}
             className="px-4 py-2 bg-gray-900 text-white text-sm rounded-md hover:bg-gray-800"
           >
             새 상품 추가
@@ -135,7 +81,7 @@ export function ProductManagement({
         formData={productForm}
         onFormDataChange={setProductForm}
         onSubmit={handleProductSubmit}
-        onCancel={handleCancelForm}
+        onCancel={handleCancel}
         editingProduct={editingProduct}
         addNotification={addNotification}
       />
