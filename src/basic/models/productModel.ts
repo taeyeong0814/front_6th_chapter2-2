@@ -4,22 +4,23 @@ import {
   isValidProductName,
   isValidPrice,
   isValidStock,
-  isValidDiscountRate,
 } from "../utils/validators";
+import { isValidDiscount as isValidDiscountBase } from "./discountModel";
 
 // 검증 함수들은 utils/validators.ts에서 import
 
 /**
- * 할인 규칙의 유효성을 검증합니다
+ * 상품의 할인 규칙 유효성을 검증합니다 (상품별 추가 제약 포함)
  * @param discount 검증할 할인 규칙
  * @returns 유효한 할인 규칙이면 true, 그렇지 않으면 false
  */
-export function isValidDiscount(discount: Discount): boolean {
+export function isValidProductDiscount(discount: Discount): boolean {
+  // 기본 할인 검증 + 상품별 추가 제약 (수량 범위 1-1000)
   return (
+    isValidDiscountBase(discount) &&
     Number.isInteger(discount.quantity) &&
     discount.quantity > 0 &&
-    discount.quantity <= 1000 &&
-    isValidDiscountRate(discount.rate)
+    discount.quantity <= 1000
   );
 }
 
@@ -50,7 +51,7 @@ export function createProduct(productData: {
   }
 
   // 할인 규칙 검증
-  if (!discounts.every(isValidDiscount)) {
+  if (!discounts.every(isValidProductDiscount)) {
     return null;
   }
 
@@ -93,7 +94,7 @@ export function updateProduct(
     return null;
   }
 
-  if (!updatedProduct.discounts.every(isValidDiscount)) {
+  if (!updatedProduct.discounts.every(isValidProductDiscount)) {
     return null;
   }
 
@@ -140,7 +141,7 @@ export function addProductDiscount(
   product: Product,
   discount: Discount
 ): Product | null {
-  if (!isValidDiscount(discount)) {
+  if (!isValidProductDiscount(discount)) {
     return null;
   }
 
