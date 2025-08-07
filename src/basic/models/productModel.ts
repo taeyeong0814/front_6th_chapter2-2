@@ -1,32 +1,13 @@
 // 상품 관련 비즈니스 로직 (순수 함수)
 import { Product, Discount } from "../../types";
+import {
+  isValidProductName,
+  isValidPrice,
+  isValidStock,
+  isValidDiscountRate,
+} from "../utils/validators";
 
-/**
- * 상품 이름의 유효성을 검증합니다
- * @param name 검증할 상품 이름
- * @returns 유효한 이름이면 true, 그렇지 않으면 false
- */
-export function isValidProductName(name: string): boolean {
-  return name.trim().length >= 1 && name.trim().length <= 100;
-}
-
-/**
- * 상품 가격의 유효성을 검증합니다
- * @param price 검증할 가격
- * @returns 유효한 가격이면 true, 그렇지 않으면 false
- */
-export function isValidPrice(price: number): boolean {
-  return price > 0 && price <= 10000000; // 최대 1천만원
-}
-
-/**
- * 재고 수량의 유효성을 검증합니다
- * @param stock 검증할 재고 수량
- * @returns 유효한 재고면 true, 그렇지 않으면 false
- */
-export function isValidStock(stock: number): boolean {
-  return Number.isInteger(stock) && stock >= 0 && stock <= 100000;
-}
+// 검증 함수들은 utils/validators.ts에서 import
 
 /**
  * 할인 규칙의 유효성을 검증합니다
@@ -38,8 +19,7 @@ export function isValidDiscount(discount: Discount): boolean {
     Number.isInteger(discount.quantity) &&
     discount.quantity > 0 &&
     discount.quantity <= 1000 &&
-    discount.rate > 0 &&
-    discount.rate <= 1 // 100% 이하
+    isValidDiscountRate(discount.rate)
   );
 }
 

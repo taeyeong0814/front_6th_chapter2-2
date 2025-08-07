@@ -1,16 +1,8 @@
 // 쿠폰 관련 비즈니스 로직 (순수 함수)
 import { Coupon } from "../../types";
+import { isValidCouponCode } from "../utils/validators";
 
-/**
- * 쿠폰 코드의 유효성을 검증합니다
- * @param code 검증할 쿠폰 코드
- * @returns 유효한 코드면 true, 그렇지 않으면 false
- */
-export function isValidCouponCode(code: string): boolean {
-  // 4-12자 영문 대문자와 숫자만 허용
-  const codeRegex = /^[A-Z0-9]{4,12}$/;
-  return codeRegex.test(code);
-}
+// 검증 함수들은 utils/validators.ts에서 import
 
 /**
  * 쿠폰이 특정 총액에 적용 가능한지 확인합니다

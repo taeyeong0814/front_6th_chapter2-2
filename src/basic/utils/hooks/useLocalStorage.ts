@@ -11,7 +11,7 @@
 //
 // 반환값: [저장된 값, 값 설정 함수]
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 
 export function useLocalStorage<T>(
   key: string,

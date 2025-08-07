@@ -1,5 +1,6 @@
 // 할인 관련 비즈니스 로직 (순수 함수)
 import { Discount, CartItem } from "../../types";
+import { isValidDiscountRate, isValidQuantity } from "../utils/validators";
 
 /**
  * 할인 규칙의 유효성을 검증합니다
@@ -8,11 +9,7 @@ import { Discount, CartItem } from "../../types";
  */
 export function isValidDiscount(discount: Discount): boolean {
   return (
-    Number.isInteger(discount.quantity) &&
-    discount.quantity > 0 &&
-    discount.quantity <= 1000 &&
-    discount.rate > 0 &&
-    discount.rate <= 1 // 100% 이하
+    isValidQuantity(discount.quantity) && isValidDiscountRate(discount.rate)
   );
 }
 
@@ -171,7 +168,7 @@ export function updateDiscountRate(
   quantity: number,
   newRate: number
 ): Discount[] | null {
-  if (newRate <= 0 || newRate > 1) {
+  if (!isValidDiscountRate(newRate)) {
     return null;
   }
 
