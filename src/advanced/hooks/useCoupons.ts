@@ -9,9 +9,9 @@
 // - removeCoupon: 쿠폰 삭제
 
 import { useCallback } from "react";
+import { useAtom } from "jotai";
 import { Coupon } from "../type/types";
-import { initialCoupons } from "../data/initialData";
-import { useLocalStorage } from "../utils/hooks/useLocalStorage";
+import { couponsAtom } from "../stores";
 
 interface UseCouponsProps {
   addNotification: (
@@ -34,10 +34,7 @@ interface UseCouponsProps {
  */
 export const useCoupons = ({ addNotification }: UseCouponsProps) => {
   // 쿠폰 목록 상태 (localStorage와 자동 동기화)
-  const [coupons, setCoupons] = useLocalStorage<Coupon[]>(
-    "coupons",
-    initialCoupons
-  );
+  const [coupons, setCoupons] = useAtom(couponsAtom);
 
   // 쿠폰 추가
   // 새로운 쿠폰을 목록에 추가하고 유효성 검증을 수행

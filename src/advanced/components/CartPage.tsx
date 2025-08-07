@@ -19,27 +19,9 @@ import { ProductList } from "./cart/ProductList";
 import { Cart } from "./cart/Cart";
 import { CouponSelector } from "./cart/CouponSelector";
 import { OrderSummary } from "./cart/OrderSummary";
-import { ProductWithUI } from "../type/types";
-import { Coupon, CartItem } from "../type/types";
-
-interface CartPageProps {
-  searchTerm: string;
-  coupons: Coupon[];
-  cart: CartItem[];
-  selectedCoupon: Coupon | null;
-  addToCart: (product: ProductWithUI) => void;
-  removeFromCart: (productId: string) => void;
-  updateQuantity: (productId: string, newQuantity: number) => void;
-  applyCoupon: (coupon: Coupon) => void;
-  removeSelectedCoupon: () => void;
-  completeOrder: () => void;
-  calculateItemTotal: (item: CartItem) => number;
-  calculateCartTotal: () => {
-    totalBeforeDiscount: number;
-    totalAfterDiscount: number;
-  };
-  getRemainingStock: (product: ProductWithUI) => number;
-}
+import { useCoupons } from "../hooks/useCoupons";
+import { useCart } from "../hooks/useCart";
+import { useNotifications } from "../hooks/useNotifications";
 
 /**
  * 장바구니 페이지 컴포넌트
@@ -52,21 +34,23 @@ interface CartPageProps {
  *
  * Props로 모든 상태와 함수를 받아서 사용 (Props Drilling 방식)
  */
-export function CartPage({
-  searchTerm,
-  coupons,
-  cart,
-  selectedCoupon,
-  addToCart,
-  removeFromCart,
-  updateQuantity,
-  applyCoupon,
-  removeSelectedCoupon,
-  completeOrder,
-  calculateItemTotal,
-  calculateCartTotal,
-  getRemainingStock,
-}: CartPageProps) {
+export function CartPage() {
+  // 상태 및 함수들을 hooks에서 가져오기
+  const { addNotification } = useNotifications();
+  const { coupons } = useCoupons({ addNotification });
+  const {
+    cart,
+    selectedCoupon,
+    addToCart,
+    removeFromCart,
+    updateQuantity,
+    applyCoupon,
+    removeCoupon: removeSelectedCoupon,
+    completeOrder,
+    calculateItemTotal,
+    calculateCartTotal,
+    getRemainingStock,
+  } = useCart({ addNotification });
   // 장바구니 총액 계산
   const totals = calculateCartTotal();
 
@@ -74,7 +58,6 @@ export function CartPage({
     <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
       <div className="lg:col-span-3">
         <ProductList
-          searchTerm={searchTerm}
           addToCart={addToCart}
           getRemainingStock={getRemainingStock}
         />

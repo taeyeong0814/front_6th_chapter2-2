@@ -2,22 +2,11 @@
 import { useState } from "react";
 import { ProductManagement } from "./admin/ProductManagement";
 import { CouponManagement } from "./admin/CouponManagement";
-import { Coupon, CartItem, ProductWithUI } from "../type/types";
-
-interface AdminPageProps {
-  products: ProductWithUI[];
-  addProduct: (newProduct: Omit<ProductWithUI, "id">) => void;
-  updateProduct: (productId: string, updates: Partial<ProductWithUI>) => void;
-  removeProduct: (productId: string) => void;
-  coupons: Coupon[];
-  addCoupon: (newCoupon: Omit<Coupon, "id">) => void;
-  removeCoupon: (couponCode: string) => void;
-  cart: CartItem[];
-  addNotification: (
-    message: string,
-    type?: "error" | "success" | "warning"
-  ) => void;
-}
+import { useProducts } from "../hooks/useProducts";
+import { useCoupons } from "../hooks/useCoupons";
+import { useNotifications } from "../hooks/useNotifications";
+import { useAtomValue } from "jotai";
+import { cartAtom } from "../stores";
 
 /**
  * 관리자 페이지 컴포넌트
@@ -32,17 +21,14 @@ interface AdminPageProps {
  * - 기능별 컴포넌트 분리
  * - 타입 안정성 향상
  */
-export function AdminPage({
-  products,
-  addProduct,
-  updateProduct,
-  removeProduct,
-  coupons,
-  addCoupon,
-  removeCoupon,
-  cart,
-  addNotification,
-}: AdminPageProps) {
+export function AdminPage() {
+  // 상태 및 함수들을 hooks에서 가져오기
+  const { addNotification } = useNotifications();
+  const { products, addProduct, updateProduct, removeProduct } = useProducts({
+    addNotification,
+  });
+  const { coupons, addCoupon, removeCoupon } = useCoupons({ addNotification });
+  const cart = useAtomValue(cartAtom);
   const [activeTab, setActiveTab] = useState<"products" | "coupons">(
     "products"
   );

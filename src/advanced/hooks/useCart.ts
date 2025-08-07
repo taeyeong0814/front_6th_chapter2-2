@@ -24,7 +24,8 @@
 // - getRemainingStock: 재고 확인 함수
 // - clearCart: 장바구니 비우기 함수
 
-import { useState, useCallback, useEffect } from "react";
+import { useCallback } from "react";
+import { useAtom } from "jotai";
 import { CartItem, Coupon } from "../type/types";
 import { ProductWithUI } from "../type/types";
 import {
@@ -32,6 +33,7 @@ import {
   COUPON_TYPE_PERCENTAGE,
   MIN_ORDER_AMOUNT_FOR_PERCENTAGE,
 } from "../constants/coupon";
+import { cartAtom, selectedCouponAtom } from "../stores";
 
 interface CartTotals {
   totalBeforeDiscount: number;
@@ -62,29 +64,10 @@ interface UseCartProps {
  */
 export const useCart = ({ addNotification }: UseCartProps) => {
   // 장바구니 상태
-  const [cart, setCart] = useState<CartItem[]>(() => {
-    const saved = localStorage.getItem("cart");
-    if (saved) {
-      try {
-        return JSON.parse(saved);
-      } catch {
-        return [];
-      }
-    }
-    return [];
-  });
-
-  // localStorage 동기화
-  useEffect(() => {
-    if (cart.length > 0) {
-      localStorage.setItem("cart", JSON.stringify(cart));
-    } else {
-      localStorage.removeItem("cart");
-    }
-  }, [cart]);
+  const [cart, setCart] = useAtom(cartAtom);
 
   // 쿠폰 상태
-  const [selectedCoupon, setSelectedCoupon] = useState<Coupon | null>(null);
+  const [selectedCoupon, setSelectedCoupon] = useAtom(selectedCouponAtom);
 
   // Origin의 getMaxApplicableDiscount 함수
   // 상품의 수량별 할인율과 대량 구매 보너스 할인을 계산

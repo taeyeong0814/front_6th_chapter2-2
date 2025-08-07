@@ -13,10 +13,11 @@
 // - addProductDiscount: 할인 규칙 추가
 // - removeProductDiscount: 할인 규칙 삭제
 
-import { useState, useCallback, useEffect } from "react";
+import { useCallback } from "react";
+import { useAtom } from "jotai";
 import { Discount } from "../type/types";
 import { ProductWithUI } from "../type/types";
-import { initialProducts } from "../data/initialData";
+import { productsAtom } from "../stores";
 
 interface UseProductsProps {
   addNotification: (
@@ -39,23 +40,8 @@ interface UseProductsProps {
  * @returns 상품 관련 상태와 함수들
  */
 export const useProducts = ({ addNotification }: UseProductsProps) => {
-  // 상품 목록 상태
-  const [products, setProducts] = useState<ProductWithUI[]>(() => {
-    const saved = localStorage.getItem("products");
-    if (saved) {
-      try {
-        return JSON.parse(saved);
-      } catch {
-        return initialProducts;
-      }
-    }
-    return initialProducts;
-  });
-
-  // localStorage 동기화
-  useEffect(() => {
-    localStorage.setItem("products", JSON.stringify(products));
-  }, [products]);
+  // 상품 목록 상태 (Jotai atom 사용)
+  const [products, setProducts] = useAtom(productsAtom);
 
   // 상품 추가
   // 새로운 상품을 목록에 추가하고 유효성 검증을 수행

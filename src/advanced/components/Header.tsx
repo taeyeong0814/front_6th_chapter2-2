@@ -1,16 +1,14 @@
-import { useAtom } from "jotai";
-import { CartItem } from "../type/types";
+import { useAtom, useAtomValue } from "jotai";
 import { CartIcon } from "./icons/CartIcon";
-import { isAdminAtom } from "../stores/isAdminAtom";
+import { isAdminAtom, searchTermAtom, cartAtom } from "../stores";
 
-export function Header(props: {
-  searchTerm: string;
-  setSearchTerm: (term: string) => void;
-  cart: CartItem[];
-  totalItemCount: number; // 총 아이템 수
-}) {
+export function Header() {
   const [isAdmin, setIsAdmin] = useAtom(isAdminAtom);
-  const { searchTerm, setSearchTerm, cart, totalItemCount } = props;
+  const [searchTerm, setSearchTerm] = useAtom(searchTermAtom);
+  const cart = useAtomValue(cartAtom);
+
+  // 장바구니 총 아이템 수 계산
+  const totalItemCount = cart.reduce((total, item) => total + item.quantity, 0);
 
   return (
     <header className="bg-white shadow-sm sticky top-0 z-40 border-b">

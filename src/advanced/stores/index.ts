@@ -4,3 +4,8 @@
 export { productsAtom } from "./productsAtom";
 
 export { isAdminAtom } from "./isAdminAtom";
+export { searchTermAtom } from "./searchTermAtom";
+export { notificationsAtom } from "./notificationsAtom";
+export { couponsAtom } from "./couponsAtom";
+export { cartAtom } from "./cartAtom";
+export { selectedCouponAtom } from "./selectedCouponAtom";

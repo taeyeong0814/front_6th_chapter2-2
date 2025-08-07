@@ -1,22 +1,21 @@
-import { useAtom } from "jotai";
+import { useAtom, useAtomValue } from "jotai";
 import { ProductImageIcon } from "../icons";
 import { ProductWithUI } from "../../type/types";
 import { getDisplayPrice } from "../../utils/price";
 import { useDebounce } from "../../utils/hooks/useDebounce";
-import { productsAtom } from "../../stores/productsAtom";
+import { productsAtom, searchTermAtom } from "../../stores";
 
 interface ProductListProps {
-  searchTerm: string;
   addToCart: (product: ProductWithUI) => void;
   getRemainingStock: (product: ProductWithUI) => number;
 }
 
 export function ProductList({
-  searchTerm,
   addToCart,
   getRemainingStock,
 }: ProductListProps) {
   const [products] = useAtom(productsAtom);
+  const searchTerm = useAtomValue(searchTermAtom);
   // 검색어 디바운싱 적용 (300ms 지연)
   const debouncedSearchTerm = useDebounce(searchTerm, 300);
 

@@ -1,13 +1,8 @@
-import { Notification } from "../type/types";
 import { UIToast } from "./ui/UIToast";
+import { useNotifications } from "../hooks/useNotifications";
 
-export function NotificationList({
-  notifications,
-  removeNotification,
-}: {
-  notifications: Notification[];
-  removeNotification: (id: string) => void;
-}) {
+export function NotificationList() {
+  const { notifications, removeNotification } = useNotifications();
   return (
     <div className="fixed top-20 right-4 z-50 space-y-2 max-w-sm">
       {notifications.map((notification) => (
