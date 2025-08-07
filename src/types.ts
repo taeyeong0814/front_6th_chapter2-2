@@ -3,7 +3,12 @@ export interface Product {
   name: string;
   price: number;
   stock: number;
+  description?: string;
   discounts: Discount[];
+}
+
+export interface ProductWithUI extends Product {
+  isRecommended?: boolean;
 }
 
 export interface Discount {
@@ -17,6 +22,7 @@ export interface CartItem {
 }
 
 export interface Coupon {
+  id?: string;
   name: string;
   code: string;
   discountType: "amount" | "percentage";
@@ -27,4 +33,20 @@ export interface Notification {
   id: string;
   message: string;
   type: "error" | "success" | "warning";
+}
+
+// 폼에서 사용할 타입들
+export interface ProductFormData {
+  name: string;
+  price: number;
+  stock: number;
+  description: string;
+  discounts: Discount[];
+}
+
+export interface CouponFormData {
+  name: string;
+  code: string;
+  discountType: "amount" | "percentage";
+  discountValue: number;
 }

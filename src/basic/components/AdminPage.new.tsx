@@ -1,23 +1,8 @@
 // 관리자 페이지 메인 컴포넌트 (리팩토링 완료)
-import { useState } from "react";
+import React, { useState } from "react";
 import { ProductManagement } from "./admin/ProductManagement";
 import { CouponManagement } from "./admin/CouponManagement";
-import { Coupon, CartItem, ProductWithUI } from "../../types";
-
-interface AdminPageProps {
-  products: ProductWithUI[];
-  addProduct: (newProduct: Omit<ProductWithUI, "id">) => void;
-  updateProduct: (productId: string, updates: Partial<ProductWithUI>) => void;
-  removeProduct: (productId: string) => void;
-  coupons: Coupon[];
-  addCoupon: (newCoupon: Omit<Coupon, "id">) => void;
-  removeCoupon: (couponCode: string) => void;
-  cart: CartItem[];
-  addNotification: (
-    message: string,
-    type?: "error" | "success" | "warning"
-  ) => void;
-}
+import { AdminPageProps } from "./admin/types";
 
 /**
  * 관리자 페이지 컴포넌트
@@ -33,6 +18,7 @@ interface AdminPageProps {
  * - 타입 안정성 향상
  */
 export function AdminPage({
+  isAdmin,
   products,
   addProduct,
   updateProduct,
@@ -102,3 +88,4 @@ export function AdminPage({
     </div>
   );
 }
+

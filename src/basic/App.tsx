@@ -1,6 +1,5 @@
 import { useState } from "react";
 
-import { AdminPage } from "./components/AdminPage";
 import { CartPage } from "./components/CartPage";
 import { useCart } from "./hooks/useCart";
 import { useProducts } from "./hooks/useProducts";
@@ -8,6 +7,7 @@ import { useCoupons } from "./hooks/useCoupons";
 import { useNotifications } from "./hooks/useNotifications";
 import { Header } from "./components/Header";
 import { NotificationList } from "./components/NotificationList";
+import { AdminPage } from "./components/AdminPage.new";
 
 const App = () => {
   const [isAdmin, setIsAdmin] = useState(false);
