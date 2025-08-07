@@ -1,6 +1,10 @@
 // 쿠폰 추가 폼 컴포넌트 (기존 AdminPage 구조 유지)
 import React from "react";
 import { CouponFormData } from "../../../types";
+import {
+  MAX_PERCENTAGE_DISCOUNT,
+  MAX_AMOUNT_DISCOUNT,
+} from "../../constants/coupon";
 
 interface CouponFormProps {
   isVisible: boolean;
@@ -102,14 +106,14 @@ export function CouponForm({
               onBlur={(e) => {
                 const value = parseInt(e.target.value) || 0;
                 if (formData.discountType === "percentage") {
-                  if (value > 100) {
+                  if (value > MAX_PERCENTAGE_DISCOUNT) {
                     addNotification(
                       "할인율은 100%를 초과할 수 없습니다",
                       "error"
                     );
                     onFormDataChange({
                       ...formData,
-                      discountValue: 100,
+                      discountValue: MAX_PERCENTAGE_DISCOUNT,
                     });
                   } else if (value < 0) {
                     onFormDataChange({
@@ -118,14 +122,14 @@ export function CouponForm({
                     });
                   }
                 } else {
-                  if (value > 100000) {
+                  if (value > MAX_AMOUNT_DISCOUNT) {
                     addNotification(
                       "할인 금액은 100,000원을 초과할 수 없습니다",
                       "error"
                     );
                     onFormDataChange({
                       ...formData,
-                      discountValue: 100000,
+                      discountValue: MAX_AMOUNT_DISCOUNT,
                     });
                   } else if (value < 0) {
                     onFormDataChange({

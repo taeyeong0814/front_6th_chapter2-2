@@ -15,7 +15,8 @@
 
 import { useState, useCallback, useEffect } from "react";
 import { Discount } from "../../types";
-import { ProductWithUI, initialProducts } from "../constants";
+import { ProductWithUI } from "../../types";
+import { initialProducts } from "../data/initialData";
 
 interface UseProductsProps {
   addNotification: (

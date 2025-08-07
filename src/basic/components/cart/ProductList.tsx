@@ -1,5 +1,5 @@
 import { ProductImageIcon } from "../icons";
-import { ProductWithUI } from "../../constants";
+import { ProductWithUI } from "../../../types";
 import { getDisplayPrice } from "../../utils/price";
 import { useDebounce } from "../../utils/hooks/useDebounce";
 

@@ -1,4 +1,4 @@
-import { ProductWithUI } from "../constants";
+import { ProductWithUI } from "../../types";
 import { formatPrice } from "./formatters";
 
 /**

@@ -8,9 +8,9 @@
 // - addCoupon: 새 쿠폰 추가
 // - removeCoupon: 쿠폰 삭제
 
-import { useState, useCallback, useEffect } from "react";
+import { useCallback } from "react";
 import { Coupon } from "../../types";
-import { initialCoupons } from "../constants";
+import { initialCoupons } from "../data/initialData";
 import { useLocalStorage } from "../utils/hooks/useLocalStorage";
 
 interface UseCouponsProps {

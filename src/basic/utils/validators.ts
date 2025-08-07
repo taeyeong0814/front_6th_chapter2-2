@@ -1,6 +1,13 @@
 // 검증 유틸리티 함수들 (순수 함수)
 // 모든 함수는 부작용 없이 입력값의 유효성만 검증
 
+import {
+  MIN_PRODUCT_PRICE,
+  MAX_PRODUCT_PRICE,
+  MIN_STOCK,
+  MAX_STOCK,
+} from "../constants/product";
+
 /**
  * 쿠폰 코드의 유효성을 검증합니다
  * @param code 검증할 쿠폰 코드
@@ -18,7 +25,7 @@ export function isValidCouponCode(code: string): boolean {
  * @returns 유효한 재고면 true, 그렇지 않으면 false
  */
 export function isValidStock(stock: number): boolean {
-  return Number.isInteger(stock) && stock >= 0 && stock <= 100000;
+  return Number.isInteger(stock) && stock >= MIN_STOCK && stock <= MAX_STOCK;
 }
 
 /**
@@ -27,7 +34,7 @@ export function isValidStock(stock: number): boolean {
  * @returns 유효한 가격이면 true, 그렇지 않으면 false
  */
 export function isValidPrice(price: number): boolean {
-  return price > 0 && price <= 10000000; // 최대 1천만원
+  return price > MIN_PRODUCT_PRICE && price <= MAX_PRODUCT_PRICE;
 }
 
 /**

@@ -26,7 +26,12 @@
 
 import { useState, useCallback, useEffect } from "react";
 import { CartItem, Coupon } from "../../types";
-import { ProductWithUI } from "../constants";
+import { ProductWithUI } from "../../types";
+import {
+  COUPON_TYPE_AMOUNT,
+  COUPON_TYPE_PERCENTAGE,
+  MIN_ORDER_AMOUNT_FOR_PERCENTAGE,
+} from "../constants/coupon";
 
 interface CartTotals {
   totalBeforeDiscount: number;
@@ -134,7 +139,7 @@ export const useCart = ({ addNotification }: UseCartProps) => {
 
     // 쿠폰 할인 적용
     if (selectedCoupon) {
-      if (selectedCoupon.discountType === "amount") {
+      if (selectedCoupon.discountType === COUPON_TYPE_AMOUNT) {
         totalAfterDiscount = Math.max(
           0,
           totalAfterDiscount - selectedCoupon.discountValue
@@ -250,7 +255,10 @@ export const useCart = ({ addNotification }: UseCartProps) => {
       const currentTotal = calculateCartTotal().totalAfterDiscount;
 
       // percentage 쿠폰은 10,000원 이상 구매시에만 사용 가능
-      if (currentTotal < 10000 && coupon.discountType === "percentage") {
+      if (
+        currentTotal < MIN_ORDER_AMOUNT_FOR_PERCENTAGE &&
+        coupon.discountType === COUPON_TYPE_PERCENTAGE
+      ) {
         addNotification(
           "percentage 쿠폰은 10,000원 이상 구매 시 사용 가능합니다.",
           "error"

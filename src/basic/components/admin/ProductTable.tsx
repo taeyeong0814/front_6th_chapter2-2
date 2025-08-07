@@ -1,5 +1,6 @@
 // 상품 테이블 컴포넌트 (기존 AdminPage 구조 유지)
 import { ProductWithUI, Product } from "../../../types";
+import { LOW_STOCK_THRESHOLD } from "../../constants/product";
 
 interface ProductTableProps {
   products: ProductWithUI[];
@@ -56,7 +57,7 @@ export function ProductTable({
               <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                 <span
                   className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-                    product.stock > 10
+                    product.stock > LOW_STOCK_THRESHOLD
                       ? "bg-green-100 text-green-800"
                       : product.stock > 0
                       ? "bg-yellow-100 text-yellow-800"

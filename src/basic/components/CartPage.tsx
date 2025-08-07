@@ -15,12 +15,11 @@
 // - SearchBar: 검색 입력
 // - ProductList: 상품 목록 표시
 
-import { useEffect } from "react";
 import { ProductList } from "./cart/ProductList";
 import { Cart } from "./cart/Cart";
 import { CouponSelector } from "./cart/CouponSelector";
 import { OrderSummary } from "./cart/OrderSummary";
-import { ProductWithUI } from "../constants";
+import { ProductWithUI } from "../../types";
 import { Coupon, CartItem } from "../../types";
 
 interface CartPageProps {
@@ -74,8 +73,6 @@ export function CartPage({
 }: CartPageProps) {
   // 장바구니 총액 계산
   const totals = calculateCartTotal();
-
-  // products는 이미 useProducts 훅에서 localStorage 동기화됨
 
   return (
     <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
